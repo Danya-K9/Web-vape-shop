@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:5432@localhost:5432/vape_shop"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  name         String
+  telegram     String?
+  phone        String?
+  role         Role      @default(USER)
+  orders       Order[]
+  createdAt    DateTime  @default(now())
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  costPrice   Float
+  imageUrl    String
+  category    String
+  quantity    Int
+  createdAt   DateTime    @default(now())
+  orderItems  OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+}
+
+model PickupLocation {
+  id      Int     @id @default(autoincrement())
+  name    String
+  address String
+  active  Boolean @default(true)
+  orders  Order[]
+}
+
+model Order {
+  id               Int            @id @default(autoincrement())
+  userId           Int
+  user             User           @relation(fields: [userId], references: [id])
+
+  pickupLocationId Int
+  pickupLocation   PickupLocation @relation(fields: [pickupLocationId], references: [id])
+
+  pickupTime       DateTime?      // опционально
+  totalPrice       Float
+  status           String         @default("PENDING")
+
+  telegramChatId    Int?           // chat.id
+  telegramMessageId Int?           // message_id
+  changeFrom        Float?         // сдача
+
+  items            OrderItem[]
+  createdAt        DateTime       @default(now())
+}
+
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+
+  quantity  Int
+  price     Float
+}
+
