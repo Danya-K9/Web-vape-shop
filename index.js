@@ -1,24 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const { PrismaClient } = require('@prisma/client');
 
 const app = express();
+const prisma = new PrismaClient();
 
 // ===== CORS =====
 const allowedOrigins = ["https://vape-shopby.netlify.app"];
 app.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true); // Postman / server-to-server
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true,
 }));
 
+// Обработка preflight для всех роутов
+app.options('*', cors());
+
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -44,11 +43,23 @@ app.use("/api/admin", adminRoutes);
 // Статика для загрузок
 app.use("/uploads", express.static("uploads"));
 
-// ===== TEST =====
-app.get('/', (req, res) => {
-  res.send('API is running');
+// ===== TEST ROUTE =====
+app.get('/', async (req, res) => {
+  try {
+    // Проверка подключения к базе
+    await prisma.$queryRaw`SELECT 1`;
+    res.send('API is running and DB connected ✅');
+  } catch (e) {
+    console.error("DB CONNECTION ERROR:", e);
+    res.status(500).send('API is running but DB connection failed ❌');
+  }
 });
 
-// ===== START =====
+// ===== TELEGRAM BOT (ВРЕМЕННО ЗАКОММЕНТИРОВАНО) =====
+// const TelegramBot = require('node-telegram-bot-api');
+// const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+// bot.sendMessage(process.env.TELEGRAM_CHAT_ID, "Server started"); 
+
+// ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
