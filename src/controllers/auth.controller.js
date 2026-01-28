@@ -13,12 +13,16 @@ exports.sendCode = async (req, res) => {
     codes.set(email, code);
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // APP PASSWORD!
+  },
+  connectionTimeout: 30000,
+});
+
 
     await transporter.sendMail({
       from: `"VAPE SHOP" <${process.env.EMAIL_USER}>`,
