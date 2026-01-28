@@ -38,12 +38,16 @@ exports.sendCode = async (req, res) => {
       return res.status(500).json({ message: "Mailgun не настроен! Проверьте env переменные." });
     }
 
-    await mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
-      from: process.env.MAILGUN_FROM,
-      to: email,
-      subject: "Код подтверждения",
-      text: `Ваш код подтверждения: ${code}`,
-    });
+ await mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
+  from: {
+    name: "VAPE SHOP",
+    address: process.env.MAILGUN_FROM
+  },
+  to: email,
+  subject: "Код подтверждения",
+  text: `Ваш код подтверждения: ${code}`,
+});
+
 
     console.log(`Код ${code} отправлен на ${email}`);
     res.json({ message: "Код отправлен" });
