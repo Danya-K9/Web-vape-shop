@@ -29,6 +29,15 @@ exports.sendCode = async (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     codes.set(email, code);
 
+    // 🔥 Лог переменных перед отправкой
+    console.log("MAILGUN_API_KEY =", process.env.MAILGUN_API_KEY ? "OK" : "MISSING");
+    console.log("MAILGUN_DOMAIN =", process.env.MAILGUN_DOMAIN || "MISSING");
+    console.log("MAILGUN_FROM =", process.env.MAILGUN_FROM || "MISSING");
+
+    if (!process.env.MAILGUN_FROM || !process.env.MAILGUN_DOMAIN || !process.env.MAILGUN_API_KEY) {
+      return res.status(500).json({ message: "Mailgun не настроен! Проверьте env переменные." });
+    }
+
     await mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
       from: process.env.MAILGUN_FROM,
       to: email,
@@ -36,12 +45,14 @@ exports.sendCode = async (req, res) => {
       text: `Ваш код подтверждения: ${code}`,
     });
 
+    console.log(`Код ${code} отправлен на ${email}`);
     res.json({ message: "Код отправлен" });
   } catch (e) {
     console.error("MAILGUN ERROR:", e);
     res.status(500).json({ message: "Ошибка отправки кода" });
   }
 };
+
 
 /**
  * Регистрация
