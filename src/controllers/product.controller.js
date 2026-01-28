@@ -7,9 +7,11 @@ async function getProducts(req, res) {
     const products = await productService.getAllProducts(req.query);
     res.json(products);
   } catch (e) {
+    console.error("🔥 getProducts error:", e);
     res.status(500).json({ error: e.message });
   }
 }
+
 
 // GET /api/products/:id
 async function getProduct(req, res) {
