@@ -1,21 +1,13 @@
 const prisma = require('../../prisma.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-// Mailgun
-const mailgun = require("mailgun-js");
-
-const mg = mailgun({
-  apiKey: process.env.MAILGUN_API_KEY,
-  domain: process.env.MAILGUN_DOMAIN,
-});
-
+const { sendEmail } = require('../email/emailService'); // Gmail
 
 // Храним коды в памяти
 const codes = new Map();
 
 /**
- * Отправка кода на email (Mailgun)
+ * Отправка кода на email (через Gmail)
  */
 exports.sendCode = async (req, res) => {
   try {
@@ -28,32 +20,23 @@ exports.sendCode = async (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     codes.set(email, code);
 
-    // 🔥 Лог переменных перед отправкой
-    console.log("MAILGUN_API_KEY =", process.env.MAILGUN_API_KEY ? "OK" : "MISSING");
-    console.log("MAILGUN_DOMAIN =", process.env.MAILGUN_DOMAIN || "MISSING");
-    console.log("MAILGUN_FROM =", process.env.MAILGUN_FROM || "MISSING");
+    // 🔥 Лог для дебага
+    console.log(`Отправка кода ${code} на email: ${email}`);
 
-    if (!process.env.MAILGUN_FROM || !process.env.MAILGUN_DOMAIN || !process.env.MAILGUN_API_KEY) {
-      return res.status(500).json({ message: "Mailgun не настроен! Проверьте env переменные." });
-    }
+    // Отправка через Gmail
+    await sendEmail(
+      email,
+      "Код подтверждения",
+      `<h2>Код подтверждения</h2><p><b>${code}</b></p>`
+    );
 
-await mg.messages().send({
-  from: process.env.MAILGUN_FROM,
-  to: email,
-  subject: "Код подтверждения",
-  text: `Ваш код подтверждения: ${code}`,
-});
-
-
-
-    console.log(`Код ${code} отправлен на ${email}`);
+    console.log(`Код ${code} успешно отправлен на ${email}`);
     res.json({ message: "Код отправлен" });
   } catch (e) {
-    console.error("MAILGUN ERROR:", e);
+    console.error("EMAIL SEND ERROR:", e);
     res.status(500).json({ message: "Ошибка отправки кода" });
   }
 };
-
 
 /**
  * Регистрация
