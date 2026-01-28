@@ -3,14 +3,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // Mailgun
-const Mailgun = require("mailgun.js");
-const formData = require("form-data");
+const mailgun = require("mailgun-js");
 
-const mg = new Mailgun(formData);
-const mailgun = mg.client({
-  username: "api",
-  key: process.env.MAILGUN_API_KEY,
+const mg = mailgun({
+  apiKey: process.env.MAILGUN_API_KEY,
+  domain: process.env.MAILGUN_DOMAIN,
 });
+
 
 // Храним коды в памяти
 const codes = new Map();
@@ -38,15 +37,13 @@ exports.sendCode = async (req, res) => {
       return res.status(500).json({ message: "Mailgun не настроен! Проверьте env переменные." });
     }
 
- await mailgun.messages.create(process.env.MAILGUN_DOMAIN, {
-  from: {
-    name: "VAPE SHOP",
-    address: process.env.MAILGUN_FROM
-  },
+await mg.messages().send({
+  from: process.env.MAILGUN_FROM,
   to: email,
   subject: "Код подтверждения",
   text: `Ваш код подтверждения: ${code}`,
 });
+
 
 
     console.log(`Код ${code} отправлен на ${email}`);
