@@ -1,25 +1,21 @@
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false, // TLS
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
-/**
- * Отправка письма
- * @param {string} to - получатель
- * @param {string} subject - тема письма
- * @param {string} html - html контент письма
- */
 async function sendEmail(to, subject, html) {
-  await transporter.sendMail({
+  return transporter.sendMail({
     from: `"VAPE SHOP" <${process.env.EMAIL_USER}>`,
     to,
     subject,
-    html
+    html,
   });
 }
 
