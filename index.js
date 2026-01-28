@@ -1,16 +1,23 @@
 const express = require('express');
 const cors = require('cors');
-require("dotenv").config();
+require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+// ===== MIDDLEWARE =====
+// Разрешаем запросы с любого фронта (для теста)
+app.use(cors({
+  origin: '*', // <- можно заменить на "https://твoй-фронт-домен.com"
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ===== ROUTES =====
 const authRoutes = require('./src/routes/auth.routes');
 const productRoutes = require('./src/routes/product.routes');
-
 const orderRoutes = require('./src/routes/order.routes');
 const pickupRoutes = require('./src/routes/pickup.routes');
 const newsRoutes = require('./src/routes/news.routes');
@@ -26,6 +33,8 @@ app.use('/api/pickup', pickupRoutes);
 app.use('/api/news', newsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+
+// Статика для загрузок
 app.use("/uploads", express.static("uploads"));
 
 // ===== TEST =====
@@ -34,7 +43,7 @@ app.get('/', (req, res) => {
 });
 
 // ===== START =====
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // <- важно для Railway
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
