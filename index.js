@@ -4,10 +4,8 @@ require('dotenv').config();
 
 const app = express();
 
-// ===== MIDDLEWARE =====
-// Разрешаем запросы с любого фронта (для теста)
+// ===== CORS =====
 const allowedOrigins = ["https://vape-shopby.netlify.app"];
-
 app.use(cors({
   origin: function(origin, callback){
     if(!origin) return callback(null, true); // Postman / server-to-server
@@ -20,7 +18,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 }));
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -53,7 +50,5 @@ app.get('/', (req, res) => {
 });
 
 // ===== START =====
-const PORT = process.env.PORT || 5000; // <- важно для Railway
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
