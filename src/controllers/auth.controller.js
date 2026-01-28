@@ -11,32 +11,31 @@ const codes = new Map();
  */
 exports.sendCode = async (req, res) => {
   try {
+    console.log("SEND CODE START", req.body);
     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email обязателен" });
-    }
+    if (!email) return res.status(400).json({ message: "Email обязателен" });
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    codes.set(email, code);
 
-    // 🔥 Лог для дебага
-    console.log(`Отправка кода ${code} на email: ${email}`);
+    codes.set(email, code);
+    console.log("CODE GENERATED:", code);
 
     // Отправка через Gmail
-    await sendEmail(
-      email,
-      "Код подтверждения",
-      `<h2>Код подтверждения</h2><p><b>${code}</b></p>`
-    );
-
-    console.log(`Код ${code} успешно отправлен на ${email}`);
-    res.json({ message: "Код отправлен" });
+    try {
+      await sendEmail(email, "Код подтверждения", `<h2>${code}</h2>`);
+      console.log("EMAIL SENT");
+      res.json({ message: "Код отправлен" });
+    } catch (e) {
+      console.error("EMAIL ERROR:", e);
+      res.status(500).json({ message: "Ошибка отправки email" });
+    }
   } catch (e) {
-    console.error("EMAIL SEND ERROR:", e);
-    res.status(500).json({ message: "Ошибка отправки кода" });
+    console.error("SEND CODE ERROR:", e);
+    res.status(500).json({ message: "Ошибка sendCode" });
   }
 };
+
 
 /**
  * Регистрация
