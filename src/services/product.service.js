@@ -7,9 +7,6 @@ async function getAllProducts(filters) {
     if (filters.title) {
         where.title = { contains: filters.title, mode: 'insensitive' };
     }
-    if (filters.inStock !== undefined) {
-        where.inStock = filters.inStock === 'true';
-    }
     if (filters.minPrice) {
         where.price = { gte: parseFloat(filters.minPrice) };
     }
