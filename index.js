@@ -111,12 +111,10 @@ app.use((err, req, res, next) => {
    START SERVER (Railway compatible)
    ========================================================= */
 
-const PORT = process.env.PORT;
-
-if (!PORT) {
-  throw new Error('PORT is not defined');
-}
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server started on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔑 Env variables loaded: ${Object.keys(process.env).length}`);
 });

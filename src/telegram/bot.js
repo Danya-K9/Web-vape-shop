@@ -10,11 +10,19 @@ const API_URL = process.env.API_URL || 'http://localhost:5000';
 const BOT_EMAIL = process.env.BOT_ADMIN_EMAIL;
 const BOT_PASSWORD = process.env.BOT_ADMIN_PASSWORD;
 
-if (!BOT_TOKEN) throw new Error('TELEGRAM_BOT_TOKEN missing');
-if (!BOT_EMAIL) throw new Error('BOT_ADMIN_EMAIL missing');
-if (!BOT_PASSWORD) throw new Error('BOT_ADMIN_PASSWORD missing');
+// Проверяем наличие всех необходимых переменных
+const isBotConfigured = BOT_TOKEN && BOT_EMAIL && BOT_PASSWORD;
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+if (!isBotConfigured) {
+  console.warn('⚠️ Telegram bot not configured - missing env variables');
+  console.warn('Missing:', {
+    BOT_TOKEN: !BOT_TOKEN,
+    BOT_EMAIL: !BOT_EMAIL,
+    BOT_PASSWORD: !BOT_PASSWORD
+  });
+}
+
+const bot = isBotConfigured ? new TelegramBot(BOT_TOKEN, { polling: true }) : null;
 
 let ADMIN_TOKEN = null;
 
@@ -22,6 +30,11 @@ let ADMIN_TOKEN = null;
  * Авторизация бота
  */
 async function loginBot() {
+  if (!isBotConfigured) {
+    console.log('⚠️ Skipping bot login - bot not configured');
+    return;
+  }
+
   try {
     console.log('🤖 Bot login...');
 
@@ -67,7 +80,8 @@ const res = await api().get(`/api/orders/admin`);
 /**
  * Обработка кнопок подтверждения / отмены
  */
-bot.on('callback_query', async (query) => {
+if (bot) {
+  bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const messageId = query.message.message_id;
 
@@ -127,14 +141,19 @@ ${itemsText}
 
     await bot.answerCallbackQuery(query.id, { text: 'Ошибка ❌' });
   }
-});
+  });
+}
 
 /**
  * Старт
  */
 (async () => {
   await loginBot();
-  console.log('🤖 Telegram bot started');
+  if (isBotConfigured) {
+    console.log('🤖 Telegram bot started');
+  } else {
+    console.log('⚠️ Telegram bot disabled - configure env variables to enable');
+  }
 })();
 
 module.exports = {

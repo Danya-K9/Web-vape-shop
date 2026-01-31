@@ -303,29 +303,33 @@ ${itemsText}
 `;
 
 
-  try {
-    // ❗ Здесь добавляем присвоение message
-    const message = await bot.sendMessage(ADMIN_CHAT_ID, text, {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: '✅ Подтвердить', callback_data: `confirm:${fullOrder.id}` },
-            { text: '❌ Отменить', callback_data: `cancel:${fullOrder.id}` }
+  if (bot && ADMIN_CHAT_ID) {
+    try {
+      // ❗ Здесь добавляем присвоение message
+      const message = await bot.sendMessage(ADMIN_CHAT_ID, text, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '✅ Подтвердить', callback_data: `confirm:${fullOrder.id}` },
+              { text: '❌ Отменить', callback_data: `cancel:${fullOrder.id}` }
+            ]
           ]
-        ]
-      }
-    });
+        }
+      });
 
-    // Сохраняем в заказе chat_id и message_id для дальнейшего редактирования кнопок
-    await prisma.order.update({
-      where: { id: fullOrder.id },
-      data: {
-        telegramChatId: message.chat.id,
-        telegramMessageId: message.message_id
-      }
-    });
-  } catch (e) {
-    console.error("TELEGRAM SEND ERROR:", e);
+      // Сохраняем в заказе chat_id и message_id для дальнейшего редактирования кнопок
+      await prisma.order.update({
+        where: { id: fullOrder.id },
+        data: {
+          telegramChatId: message.chat.id,
+          telegramMessageId: message.message_id
+        }
+      });
+    } catch (e) {
+      console.error("TELEGRAM SEND ERROR:", e);
+    }
+  } else {
+    console.log('⚠️ Telegram bot not configured - skipping notification');
   }
 }
 
@@ -409,10 +413,12 @@ ${itemsText}
 ⏰ Время: ${order.pickupTime ? new Date(order.pickupTime).toLocaleString('ru-RU') : '-'}
 `;
 
-      try {
-        await bot.sendMessage(ADMIN_CHAT_ID, text);
-      } catch (e) {
-        console.error("TELEGRAM NOTIFY ERROR:", e.message);
+      if (bot && ADMIN_CHAT_ID) {
+        try {
+          await bot.sendMessage(ADMIN_CHAT_ID, text);
+        } catch (e) {
+          console.error("TELEGRAM NOTIFY ERROR:", e.message);
+        }
       }
     }
     // --------------------------
