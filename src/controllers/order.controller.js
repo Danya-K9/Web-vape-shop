@@ -1,6 +1,5 @@
 const prisma = require('../../prisma.js');
 const { bot, ADMIN_CHAT_ID } = require('../telegram/bot');
-const { sendEmail } = require('../email/emailService');
 
 // 🧾 Мои заказы
 exports.getMyOrders = async (req, res) => {
@@ -123,33 +122,26 @@ exports.updateOrderStatus = async (req, res) => {
     });
 
     // -------------------
-    // ✅ Отправка письма пользователю
-    if (order.user?.email) {
-      let subject = '';
-      let message = '';
-
-      if (status === "CONFIRMED") {
-        subject = `Ваш заказ #${order.id} подтверждён`;
-        message = `
-          <p>Здравствуйте, ${order.user.name}!</p>
-          <p>Ваш заказ #${order.id} был подтверждён.</p>
-          <p>Сумма: ${order.totalPrice} BYN</p>
-          <p>Самовывоз: ${order.pickupLocation?.name || '-'}</p>
-          <p>Дата и время: ${order.pickupTime ? new Date(order.pickupTime).toLocaleString('ru-RU') : '-'}</p>
-        `;
-      } else if (status === "CANCELLED") {
-        subject = `Ваш заказ #${order.id} был отменён`;
-        message = `
-          <p>Здравствуйте, ${order.user.name}!</p>
-          <p>Ваш заказ #${order.id} был отменён.</p>
-          <p>Если это ошибка, свяжитесь с нами.</p>
-        `;
-      }
-
+    // ✅ Оповещение пользователю в Telegram
+    const userChatId = order.user?.telegramChatId;
+    if (bot && userChatId) {
       try {
-        await sendEmail(order.user.email, subject, message);
+        if (status === "CONFIRMED") {
+          await bot.sendMessage(
+            userChatId,
+            `✅ Заказ #${order.id} подтверждён!\n\n` +
+            `Сумма: ${order.totalPrice} BYN\n` +
+            `Самовывоз: ${order.pickupLocation?.name || '-'}\n` +
+            `Дата и время: ${order.pickupTime ? new Date(order.pickupTime).toLocaleString('ru-RU') : '-'}`
+          );
+        } else if (status === "CANCELLED") {
+          await bot.sendMessage(
+            userChatId,
+            `❌ Заказ #${order.id} отменён.\n\nЕсли это ошибка, свяжитесь с нами.`
+          );
+        }
       } catch (e) {
-        console.error("EMAIL SEND ERROR:", e);
+        console.error("TELEGRAM USER NOTIFY ERROR:", e);
       }
     }
     // -------------------
@@ -333,6 +325,24 @@ ${itemsText}
   }
 }
 
+    // 4b. Оповещение пользователю в Telegram
+    const userChatId = fullOrder.user?.telegramChatId;
+    if (bot && userChatId) {
+      try {
+        const itemsShort = fullOrder.items.map(i => `• ${i.product.title} × ${i.quantity}`).join('\n');
+        await bot.sendMessage(
+          userChatId,
+          `🛒 Ваш заказ #${fullOrder.id} принят!\n\n` +
+          `Сумма: ${fullOrder.totalPrice} BYN\n` +
+          `Самовывоз: ${fullOrder.pickupLocation?.name || '-'}\n` +
+          `Время: ${new Date(fullOrder.pickupTime).toLocaleString('ru-RU')}\n\n` +
+          `Товары:\n${itemsShort}\n\n` +
+          `Ожидайте подтверждения в боте.`
+        );
+      } catch (e) {
+        console.error("TELEGRAM USER NOTIFY (order created):", e);
+      }
+    }
 
     // 5️⃣ Ответ клиенту
     res.json(fullOrder);
