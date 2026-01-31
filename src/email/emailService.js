@@ -1,44 +1,48 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require('resend');
 
-// Проверяем наличие email конфигурации
-const isEmailConfigured = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+// Проверяем наличие API ключа Resend
+const isEmailConfigured = !!process.env.RESEND_API_KEY;
 
 if (!isEmailConfigured) {
-  console.warn('⚠️ Email service not configured - missing EMAIL_USER or EMAIL_PASS');
+  console.warn('⚠️ Email service not configured - missing RESEND_API_KEY');
 }
 
-// Gmail SMTP с явными настройками
-const transporter = isEmailConfigured ? nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // SSL
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 10000, // 10 секунд
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-}) : null;
+const resend = isEmailConfigured ? new Resend(process.env.RESEND_API_KEY) : null;
 
-// Проверяем подключение при старте
-if (transporter) {
-  transporter.verify()
-    .then(() => console.log('✅ Email service connected'))
-    .catch(err => console.error('❌ Email service error:', err.message));
-}
+// Email отправителя (Resend предоставляет бесплатный домен для тестов)
+const FROM_EMAIL = process.env.EMAIL_FROM || 'VapeShop <onboarding@resend.dev>';
 
 async function sendEmail(to, subject, html) {
-  if (!transporter) {
-    throw new Error('Email service not configured');
+  if (!resend) {
+    throw new Error('Email service not configured - missing RESEND_API_KEY');
   }
-  
-  return transporter.sendMail({
-    from: `"VAPE SHOP" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+
+  console.log(`📧 Sending email to: ${to}`);
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject: subject,
+      html: html,
+    });
+
+    if (error) {
+      console.error('❌ Resend error:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('✅ Email sent successfully:', data?.id);
+    return data;
+  } catch (err) {
+    console.error('❌ Email send failed:', err.message);
+    throw err;
+  }
+}
+
+// Проверка работоспособности при старте
+if (resend) {
+  console.log('✅ Resend email service initialized');
 }
 
 module.exports = { sendEmail };
