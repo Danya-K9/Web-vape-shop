@@ -10,26 +10,14 @@ const prisma = new PrismaClient();
    CORS
    ========================================================= */
 
-const allowedOrigins = [
-  'https://vape-shopby.netlify.app',
-  'http://localhost:5173',
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // разрешаем запросы без origin (Postman, mobile, server-to-server)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
+  origin: [
+    'https://vape-shopby.netlify.app',
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 // Preflight для всех роутов
 app.options('*', cors());
