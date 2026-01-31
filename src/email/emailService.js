@@ -7,13 +7,26 @@ if (!isEmailConfigured) {
   console.warn('⚠️ Email service not configured - missing EMAIL_USER or EMAIL_PASS');
 }
 
+// Gmail SMTP с явными настройками
 const transporter = isEmailConfigured ? nodemailer.createTransport({
-  service: 'gmail', // Используем Gmail напрямую
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000, // 10 секунд
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 }) : null;
+
+// Проверяем подключение при старте
+if (transporter) {
+  transporter.verify()
+    .then(() => console.log('✅ Email service connected'))
+    .catch(err => console.error('❌ Email service error:', err.message));
+}
 
 async function sendEmail(to, subject, html) {
   if (!transporter) {
