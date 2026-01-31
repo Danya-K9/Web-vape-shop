@@ -15,7 +15,7 @@ const allowedOrigins = [
   'http://localhost:5173',
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     // Разрешаем запросы без origin (Postman, server-to-server и т.д.)
     if (!origin) return callback(null, true);
@@ -27,12 +27,14 @@ app.use(cors({
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
 
-// Preflight для всех роутов
-app.options('*', cors());
+app.use(cors(corsOptions));
+
+// Preflight для всех роутов (с теми же настройками)
+app.options('*', cors(corsOptions));
 
 /* =========================================================
    MIDDLEWARE
@@ -53,6 +55,12 @@ const newsRoutes = require('./src/routes/news.routes');
 const userRoutes = require('./src/routes/user.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const pickupAdminRoutes = require('./src/routes/pickupLocation.admin.routes');
+
+// Debug middleware для логирования запросов
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  next();
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -78,6 +86,14 @@ app.get('/', async (req, res) => {
     console.error('DB CONNECTION ERROR:', error);
     res.status(500).send('API is running but DB connection failed ❌');
   }
+});
+
+/* =========================================================
+   404 HANDLER
+   ========================================================= */
+
+app.use((req, res, next) => {
+  res.status(404).json({ message: `Route ${req.method} ${req.path} not found` });
 });
 
 /* =========================================================
