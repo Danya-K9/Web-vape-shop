@@ -1,89 +1,95 @@
 const prisma = require('../../prisma.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { sendEmail } = require('../email/emailService'); // Gmail
+const { sendCodeToUser } = require('../telegram/bot');
 
-// Храним коды в памяти
+// Коды: ключ = telegramChatId (string) или email (для обратной совместимости)
 const codes = new Map();
 
 /**
- * Отправка кода на email (через Gmail)
+ * Отправка кода в Telegram
  */
 exports.sendCode = async (req, res) => {
   try {
-    console.log("SEND CODE START", req.body);
-    const { email } = req.body;
+    const { telegramChatId } = req.body;
 
-    if (!email) return res.status(400).json({ message: "Email обязателен" });
+    if (!telegramChatId) {
+      return res.status(400).json({ message: 'Сначала откройте бота в Telegram и нажмите /start, затем перейдите по ссылке на сайт' });
+    }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    codes.set(String(telegramChatId), code);
 
-    codes.set(email, code);
-    console.log("CODE GENERATED:", code);
-
-    // Отправка через Gmail
     try {
-      await sendEmail(email, "Код подтверждения", `<h2>${code}</h2>`);
-      console.log("EMAIL SENT");
-      res.json({ message: "Код отправлен" });
+      await sendCodeToUser(Number(telegramChatId), code);
+      res.json({ message: 'Код отправлен в Telegram' });
     } catch (e) {
-      console.error("EMAIL ERROR:", e);
-      res.status(500).json({ message: "Ошибка отправки email" });
+      console.error('TELEGRAM SEND CODE ERROR:', e);
+      res.status(500).json({ message: 'Не удалось отправить код. Убедитесь, что вы начали диалог с ботом (/start)' });
     }
   } catch (e) {
-    console.error("SEND CODE ERROR:", e);
-    res.status(500).json({ message: "Ошибка sendCode" });
+    console.error('SEND CODE ERROR:', e);
+    res.status(500).json({ message: 'Ошибка отправки кода' });
   }
 };
 
-
 /**
- * Регистрация
+ * Регистрация по Telegram
  */
 exports.register = async (req, res) => {
   try {
-    const { email, password, name, code } = req.body;
-    const role = email === process.env.ADMIN_EMAIL ? "ADMIN" : "USER";
+    const { telegramChatId, code, name, password } = req.body;
+    const tgKey = String(telegramChatId);
 
-    if (codes.get(email) !== code) {
-      return res.status(400).json({ message: "Неверный код" });
+    if (!telegramChatId || !code || !name || !password) {
+      return res.status(400).json({ message: 'Заполните все поля' });
     }
 
-    codes.delete(email);
+    if (codes.get(tgKey) !== code) {
+      return res.status(400).json({ message: 'Неверный код' });
+    }
 
-    const existingUser = await prisma.user.findUnique({
+    codes.delete(tgKey);
+
+    const existingByTg = await prisma.user.findUnique({
+      where: { telegramChatId: Number(telegramChatId) },
+    });
+    if (existingByTg) {
+      return res.status(409).json({ message: 'Пользователь с этим Telegram уже зарегистрирован' });
+    }
+
+    const email = `tg_${telegramChatId}@telegram.local`;
+    const existingByEmail = await prisma.user.findUnique({
       where: { email },
     });
-
-    if (existingUser) {
-      return res.status(400).json({ message: "Пользователь уже существует" });
+    if (existingByEmail) {
+      return res.status(409).json({ message: 'Пользователь уже существует' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const adminChatId = process.env.ADMIN_TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
+    const role = adminChatId && Number(telegramChatId) === Number(adminChatId) ? 'ADMIN' : 'USER';
 
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash: hashedPassword,
         name,
+        telegramChatId: Number(telegramChatId),
         role,
       },
     });
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: '7d' }
     );
 
     res.json({ token });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Ошибка регистрации" });
+    res.status(500).json({ message: 'Ошибка регистрации' });
   }
 };
 
@@ -99,6 +105,7 @@ exports.me = async (req, res) => {
         email: true,
         name: true,
         telegram: true,
+        telegramChatId: true,
         phone: true,
         role: true,
         createdAt: true,
@@ -107,84 +114,95 @@ exports.me = async (req, res) => {
 
     res.json(user);
   } catch (e) {
-    res.status(500).json({ message: "Ошибка профиля" });
+    res.status(500).json({ message: 'Ошибка профиля' });
   }
 };
 
 /**
- * Логин
+ * Вход: по telegramChatId + пароль (или по email + пароль для старых пользователей)
  */
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { telegramChatId, email, password } = req.body;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    if (!password) {
+      return res.status(400).json({ message: 'Введите пароль' });
+    }
+
+    let user;
+    if (telegramChatId) {
+      user = await prisma.user.findUnique({
+        where: { telegramChatId: Number(telegramChatId) },
+      });
+    } else if (email) {
+      user = await prisma.user.findUnique({
+        where: { email },
+      });
+    }
 
     if (!user) {
-      return res.status(400).json({ message: "Пользователь не найден" });
+      return res.status(400).json({ message: 'Пользователь не найден. Сначала откройте бота и перейдите по ссылке' });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      return res.status(400).json({ message: "Неверный пароль" });
+      return res.status(400).json({ message: 'Неверный пароль' });
     }
 
     const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: '7d' }
     );
 
     res.json({ token });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Ошибка входа" });
+    res.status(500).json({ message: 'Ошибка входа' });
   }
 };
 
 /**
- * Смена пароля
+ * Смена пароля: код отправляется в Telegram
  */
 exports.changePassword = async (req, res) => {
   try {
-    const { email, code, newPassword } = req.body;
+    const { telegramChatId, code, newPassword } = req.body;
 
-    if (!email || !code || !newPassword) {
-      return res.status(400).json({ message: "Не все данные переданы" });
+    if (!telegramChatId || !code || !newPassword) {
+      return res.status(400).json({ message: 'Не все данные переданы' });
     }
 
-    const savedCode = codes.get(email);
+    const tgKey = String(telegramChatId);
+    const savedCode = codes.get(tgKey);
 
-    if (!savedCode) {
-      return res.status(400).json({ message: "Код не найден или истёк" });
-    }
-
-    if (savedCode !== code) {
-      return res.status(400).json({ message: "Неверный код" });
+    if (!savedCode || savedCode !== code) {
+      return res.status(400).json({ message: 'Неверный код или код истёк' });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: "Пароль слишком короткий" });
+      return res.status(400).json({ message: 'Пароль должен быть не менее 6 символов' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { telegramChatId: Number(telegramChatId) },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-
     await prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: { passwordHash },
     });
 
-    codes.delete(email);
+    codes.delete(tgKey);
 
-    res.json({ message: "Пароль успешно изменён" });
+    res.json({ message: 'Пароль успешно изменён' });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Ошибка смены пароля" });
+    res.status(500).json({ message: 'Ошибка смены пароля' });
   }
 };

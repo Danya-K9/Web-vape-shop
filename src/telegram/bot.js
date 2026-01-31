@@ -9,6 +9,7 @@ const API_URL = process.env.API_URL || 'http://localhost:5000';
 
 const BOT_EMAIL = process.env.BOT_ADMIN_EMAIL;
 const BOT_PASSWORD = process.env.BOT_ADMIN_PASSWORD;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vape-shopby.netlify.app';
 
 // Проверяем наличие всех необходимых переменных
 const isBotConfigured = BOT_TOKEN && BOT_EMAIL && BOT_PASSWORD;
@@ -75,6 +76,36 @@ const res = await api().get(`/api/orders/admin`);
   const order = res.data.find(o => o.id === Number(orderId));
   if (!order) throw new Error('Заказ не найден');
   return order;
+}
+
+/**
+ * Отправить код подтверждения пользователю в Telegram (для авторизации на сайте)
+ */
+async function sendCodeToUser(chatId, code) {
+  if (!bot) throw new Error('Telegram bot not configured');
+  await bot.sendMessage(chatId, `🔐 Ваш код подтверждения: ${code}\n\nВведите его на сайте.`);
+}
+
+/**
+ * Команда /start — даём ссылку на регистрацию/вход
+ */
+if (bot) {
+  bot.on('message', (msg) => {
+    const text = msg.text || '';
+    const chatId = msg.chat.id;
+    if (text === '/start') {
+      const tgId = msg.from.id;
+      const link = `${FRONTEND_URL}/register?tg_id=${tgId}`;
+      const linkLogin = `${FRONTEND_URL}/login?tg_id=${tgId}`;
+      bot.sendMessage(
+        chatId,
+        `👋 Добро пожаловать!\n\n` +
+        `📝 Регистрация: ${link}\n\n` +
+        `🔑 Вход: ${linkLogin}\n\n` +
+        `Перейдите по ссылке и следуйте инструкциям на сайте.`
+      );
+    }
+  });
 }
 
 /**
@@ -158,5 +189,6 @@ ${itemsText}
 
 module.exports = {
   bot,
-  ADMIN_CHAT_ID
+  ADMIN_CHAT_ID,
+  sendCodeToUser
 };

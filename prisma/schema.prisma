@@ -13,15 +13,16 @@ enum Role {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String
-  name         String
-  telegram     String?
-  phone        String?
-  role         Role      @default(USER)
-  orders       Order[]
-  createdAt    DateTime  @default(now())
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  passwordHash    String
+  name            String
+  telegram        String?
+  telegramChatId  Int?      @unique  // Telegram user id для отправки кодов и уведомлений
+  phone           String?
+  role            Role      @default(USER)
+  orders          Order[]
+  createdAt       DateTime  @default(now())
 }
 
 model Product {
