@@ -10,14 +10,26 @@ const prisma = new PrismaClient();
    CORS
    ========================================================= */
 
+const allowedOrigins = [
+  'https://vape-shopby.netlify.app',
+  'http://localhost:5173',
+];
+
 app.use(cors({
-  origin: [
-    'https://vape-shopby.netlify.app',
-  ],
+  origin: function (origin, callback) {
+    // Разрешаем запросы без origin (Postman, server-to-server и т.д.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 
 // Preflight для всех роутов
 app.options('*', cors());
@@ -51,7 +63,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin/pickup-locations', pickupAdminRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Статика
+// Статика (картинки товаров)
 app.use('/uploads', express.static('uploads'));
 
 /* =========================================================
@@ -74,14 +86,21 @@ app.get('/', async (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('GLOBAL ERROR:', err.message);
-  res.status(500).json({ message: err.message || 'Internal server error' });
+  res.status(500).json({
+    message: err.message || 'Internal server error',
+  });
 });
 
 /* =========================================================
-   START SERVER
+   START SERVER (Railway compatible)
    ========================================================= */
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  throw new Error('PORT is not defined');
+}
+
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server started on port ${PORT}`);
 });
