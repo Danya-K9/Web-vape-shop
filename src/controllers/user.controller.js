@@ -11,6 +11,7 @@ async function getProfile(req, res) {
         email: true,
         name: true,
         telegram: true,
+        telegramChatId: true,
         phone: true,
         role: true,
         createdAt: true
