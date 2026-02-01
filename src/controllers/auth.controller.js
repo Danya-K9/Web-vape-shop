@@ -119,26 +119,23 @@ exports.me = async (req, res) => {
 };
 
 /**
- * Вход: по telegramChatId + пароль (или по email + пароль для старых пользователей)
+ * Вход: только по telegramChatId + пароль
  */
 exports.login = async (req, res) => {
   try {
-    const { telegramChatId, email, password } = req.body;
+    const { telegramChatId, password } = req.body;
 
     if (!password) {
       return res.status(400).json({ message: 'Введите пароль' });
     }
 
-    let user;
-    if (telegramChatId) {
-      user = await prisma.user.findUnique({
-        where: { telegramChatId: Number(telegramChatId) },
-      });
-    } else if (email) {
-      user = await prisma.user.findUnique({
-        where: { email },
-      });
+    if (!telegramChatId) {
+      return res.status(400).json({ message: 'Перейдите по ссылке из бота (нажмите /start в Telegram)' });
     }
+
+    const user = await prisma.user.findUnique({
+      where: { telegramChatId: Number(telegramChatId) },
+    });
 
     if (!user) {
       return res.status(400).json({ message: 'Пользователь не найден. Сначала откройте бота и перейдите по ссылке' });

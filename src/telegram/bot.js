@@ -11,16 +11,14 @@ const BOT_EMAIL = process.env.BOT_ADMIN_EMAIL;
 const BOT_PASSWORD = process.env.BOT_ADMIN_PASSWORD;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vape-shopby.netlify.app';
 
-// Проверяем наличие всех необходимых переменных
-const isBotConfigured = BOT_TOKEN && BOT_EMAIL && BOT_PASSWORD;
+// Бот создаётся при наличии токена (для /start и отправки кодов)
+const isBotConfigured = !!BOT_TOKEN;
+// Логин админа нужен только для кнопок подтверждения заказов (TELEGRAM_CHAT_ID админа + пароль)
+const adminChatId = process.env.TELEGRAM_CHAT_ID || process.env.ADMIN_TELEGRAM_CHAT_ID;
+const isAdminConfigured = !!(adminChatId && BOT_PASSWORD);
 
 if (!isBotConfigured) {
-  console.warn('⚠️ Telegram bot not configured - missing env variables');
-  console.warn('Missing:', {
-    BOT_TOKEN: !BOT_TOKEN,
-    BOT_EMAIL: !BOT_EMAIL,
-    BOT_PASSWORD: !BOT_PASSWORD
-  });
+  console.warn('⚠️ Telegram bot not configured - set TELEGRAM_BOT_TOKEN');
 }
 
 const bot = isBotConfigured ? new TelegramBot(BOT_TOKEN, { polling: true }) : null;
@@ -28,19 +26,19 @@ const bot = isBotConfigured ? new TelegramBot(BOT_TOKEN, { polling: true }) : nu
 let ADMIN_TOKEN = null;
 
 /**
- * Авторизация бота
+ * Авторизация бота (для кнопок подтверждения заказов — нужны BOT_ADMIN_EMAIL и BOT_ADMIN_PASSWORD)
  */
 async function loginBot() {
-  if (!isBotConfigured) {
-    console.log('⚠️ Skipping bot login - bot not configured');
+  if (!isAdminConfigured) {
+    console.log('⚠️ Bot admin login skipped - set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD for order buttons');
     return;
   }
 
   try {
-    console.log('🤖 Bot login...');
+    console.log('🤖 Bot admin login...');
 
     const res = await axios.post(`${API_URL}/api/auth/login`, {
-      email: BOT_EMAIL,
+      telegramChatId: adminChatId,
       password: BOT_PASSWORD
     });
 
@@ -181,9 +179,9 @@ ${itemsText}
 (async () => {
   await loginBot();
   if (isBotConfigured) {
-    console.log('🤖 Telegram bot started');
+    console.log('🤖 Telegram bot started ( /start works )');
   } else {
-    console.log('⚠️ Telegram bot disabled - configure env variables to enable');
+    console.log('⚠️ Telegram bot disabled - set TELEGRAM_BOT_TOKEN to enable');
   }
 })();
 
