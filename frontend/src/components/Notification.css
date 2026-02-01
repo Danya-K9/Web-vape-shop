@@ -1,19 +1,35 @@
+/* ===== PREMIUM NOTIFICATION ===== */
+
 .notification {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 14px 18px;
-  border-radius: 8px;
-  color: #fff;
-  max-width: 320px;
-  font-size: 14px;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  color: var(--bg-deep);
+  max-width: 360px;
+  font-size: var(--text-sm);
+  font-weight: 500;
   z-index: 9999;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .notification.success {
-  background: #2ecc71;
+  background: var(--gradient-accent);
 }
 
 .notification.warning {
-  background: #f39c12;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
 }

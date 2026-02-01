@@ -24,11 +24,12 @@ NODE_ENV=production
 **Опциональные переменные (для Telegram бота):**
 ```
 TELEGRAM_BOT_TOKEN=ваш-токен-бота
-TELEGRAM_CHAT_ID=ваш-chat-id
-BOT_ADMIN_EMAIL=admin@example.com
-BOT_ADMIN_PASSWORD=пароль-админа
 API_URL=https://ваш-домен.railway.app
 ```
+
+**Вход бота по Telegram (кнопки «Подтвердить»/«Отменить» заказ):** бот сначала пробует войти по Telegram, потом по email.
+- **Вариант 1 — по Telegram:** задай `TELEGRAM_CHAT_ID` (твой chat id в Telegram) и `BOT_ADMIN_PASSWORD` (пароль твоего аккаунта на сайте). В БД у твоего пользователя-админа должно быть поле `telegramChatId` = этот же chat id (можно выставить в pgAdmin: `UPDATE "User" SET "telegramChatId" = 123456789 WHERE email = 'твой@email.com';` — число 123456789 узнай у бота @userinfobot в Telegram).
+- **Вариант 2 — по email:** задай `BOT_ADMIN_EMAIL` и `BOT_ADMIN_PASSWORD` (email и пароль админа из БД).
 
 **Переменные для email (Resend — обязательно для отправки кодов):**
 ```

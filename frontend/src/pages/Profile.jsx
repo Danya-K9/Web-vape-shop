@@ -74,23 +74,23 @@ export default function Profile() {
 
   async function saveTelegram() {
     try {
-      await API.put("/api/users/me", { telegram });
-      setUser((prev) => ({ ...prev, telegram }));
+      const res = await API.put("/api/users/me", { telegram });
+      setUser((prev) => ({ ...prev, telegram: res.data?.telegram ?? telegram }));
       showMessage("Telegram сохранён");
       setEditTelegram(false);
-    } catch {
-      showMessage("Ошибка сохранения Telegram");
+    } catch (e) {
+      showMessage(e.response?.data?.message || "Ошибка сохранения Telegram");
     }
   }
 
   async function savePhone() {
     try {
-      await API.put("/api/users/me", { phone });
-      setUser((prev) => ({ ...prev, phone }));
+      const res = await API.put("/api/users/me", { phone });
+      setUser((prev) => ({ ...prev, phone: res.data?.phone ?? phone }));
       showMessage("Телефон сохранён");
       setEditPhone(false);
-    } catch {
-      showMessage("Ошибка сохранения телефона");
+    } catch (e) {
+      showMessage(e.response?.data?.message || "Ошибка сохранения телефона");
     }
   }
 
@@ -144,13 +144,20 @@ export default function Profile() {
   }
 
   function formatPickupDateTime(dateString) {
+    if (dateString == null || dateString === undefined || dateString === "") return "—";
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
+    if (Number.isNaN(date.getTime())) return "—";
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${day}.${month}.${year} в ${hours}:${minutes}`;
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return "—";
+    const d = String(day).padStart(2, "0");
+    const m = String(month).padStart(2, "0");
+    const h = String(hours).padStart(2, "0");
+    const min = String(minutes).padStart(2, "0");
+    return `${d}.${m}.${year} в ${h}:${min}`;
   }
 
   if (loading)

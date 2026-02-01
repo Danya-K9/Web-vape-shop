@@ -24,9 +24,15 @@ export default function Checkout() {
   useEffect(() => {
     async function loadData() {
       const savedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+      const token = localStorage.getItem("token");
 
       if (savedCart.length === 0) {
         navigate("/cart");
+        return;
+      }
+
+      if (!token) {
+        navigate("/login");
         return;
       }
 
@@ -38,18 +44,26 @@ export default function Checkout() {
         ]);
 
         // 🔒 проверка профиля — нужны телефон и Telegram для связи
-        if (!profileRes.data.phone || !profileRes.data.telegram) {
+        if (!profileRes.data?.phone || !profileRes.data?.telegram) {
           sessionStorage.setItem("profileNotice", "checkout");
           navigate("/profile");
           return;
         }
 
-        setProducts(productsRes.data);
-        setLocations(locationsRes.data.filter(l => l.active));
+        const locationsList = locationsRes?.data?.filter(l => l.active) ?? [];
+        if (locationsList.length === 0) {
+          setMessage("Нет доступных точек самовывоза. Попробуйте позже.");
+        }
+
+        setProducts(productsRes?.data ?? []);
+        setLocations(locationsList);
         setCart(savedCart);
       } catch (e) {
-        console.error(e);
-        setMessage("Ошибка загрузки данных");
+        if (e.response?.status === 401 || e.response?.status === 404) {
+          navigate("/login");
+          return;
+        }
+        setMessage(e.response?.data?.message || "Ошибка загрузки данных");
       } finally {
         setLoading(false);
       }

@@ -1,38 +1,83 @@
+/* ===== PREMIUM ADMIN ANALYTICS ===== */
+
 .admin-analytics {
-  padding: 20px;
+  padding: var(--space-xl);
+  color: var(--text-primary);
+}
+
+.admin-analytics h2 {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  margin-top: var(--space-2xl);
+  margin-bottom: var(--space-lg);
+  letter-spacing: -0.02em;
 }
 
 .analytics-filters {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.analytics-filters input {
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.analytics-filters button {
+  padding: var(--space-md) var(--space-lg);
+  background: var(--gradient-accent);
+  color: var(--bg-deep);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+}
+
+.admin-analytics h1 {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  margin-bottom: var(--space-xl);
+  letter-spacing: -0.02em;
 }
 
 .analytics-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
 }
 
-.card {
-  background: #1e1e1e;
-  color: #fff;
-  padding: 15px;
-  border-radius: 20px;
+.admin-analytics .card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
 }
 
 .analytics-table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .analytics-table th,
 .analytics-table td {
-  padding: 10px;
-  border-bottom: 1px solid #333;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
 }
-.admin-analytics h2 {
-  margin-top: 40px;
-  margin-bottom: 16px;
+
+.analytics-table th {
+  background: var(--bg-dark);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }

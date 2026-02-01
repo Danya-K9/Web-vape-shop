@@ -49,54 +49,94 @@ export default function Home() {
   }, {});
 
   return (
-    <div className="home container">
-      {/* 🔍 ПОИСК */}
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Поиск товара..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
-
-      {/* ☑️ ФИЛЬТРЫ */}
-      <div className="filters">
-        <div className="categories">
-          {categories.map(cat => (
-            <label key={cat} className="checkbox">
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(cat)}
-                onChange={() => toggleCategory(cat)}
-              />
-              {cat}
-            </label>
-          ))}
+    <div className="home">
+      {/* Hero */}
+      <section className="hero">
+        <div className="hero-bg" />
+        <div className="hero-content container">
+          <span className="hero-badge">18+</span>
+          <h1 className="hero-title">
+            Технология вкуса.<br />
+            <span className="hero-accent">Чистый пар.</span>
+          </h1>
+          <p className="hero-slogan">
+            Премиум вейп-устройства и жидкости. Качество, которое чувствуется.
+          </p>
         </div>
+      </section>
 
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={showOutOfStock}
-            onChange={() => setShowOutOfStock(!showOutOfStock)}
-          />
-          Показывать недоступные
-        </label>
-      </div>
+      {/* Advantages */}
+      <section className="advantages">
+        <div className="container advantages-grid">
+          <div className="advantage-card">
+            <span className="advantage-icon">◆</span>
+            <h3>Качество</h3>
+            <p>Только проверенные бренды и оригинальная продукция</p>
+          </div>
+          <div className="advantage-card">
+            <span className="advantage-icon">◆</span>
+            <h3>Вкусы</h3>
+            <p>Широкий выбор жидкостей и подбор под ваш вкус</p>
+          </div>
+          <div className="advantage-card">
+            <span className="advantage-icon">◆</span>
+            <h3>Самовывоз</h3>
+            <p>Удобные точки выдачи в вашем городе</p>
+          </div>
+        </div>
+      </section>
 
-      {/* 🛒 ТОВАРЫ */}
-      {Object.entries(productsByCategory).map(([category, items]) =>
-        items.length > 0 && (
-          <div key={category}>
-            <h2 className="category-title">{category}</h2>
-            <div className="products-grid">
-              {items.map(p => (
-                <ProductCard key={p.id} product={p} />
+      {/* Products section */}
+      <section className="products-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Каталог</h2>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Поиск..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="filters">
+            <div className="categories">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`category-chip ${selectedCategories.includes(cat) ? "active" : ""}`}
+                  onClick={() => toggleCategory(cat)}
+                >
+                  {cat}
+                </button>
               ))}
             </div>
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={showOutOfStock}
+                onChange={() => setShowOutOfStock(!showOutOfStock)}
+              />
+              <span>Показывать недоступные</span>
+            </label>
           </div>
-        )
-      )}
+
+          {Object.entries(productsByCategory).map(([category, items]) =>
+            items.length > 0 && (
+              <div key={category} className="category-block">
+                <h3 className="category-title">{category}</h3>
+                <div className="products-grid">
+                  {items.map(p => (
+                    <ProductCard key={p.id} product={p} />
+                  ))}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </section>
     </div>
   );
 }

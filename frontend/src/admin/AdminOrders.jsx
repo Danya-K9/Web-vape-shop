@@ -11,6 +11,19 @@ export default function AdminOrders() {
     loadOrders();
   }, []);
 
+  function formatPickupDisplay(dateValue) {
+    if (dateValue == null || dateValue === undefined || dateValue === "") return "—";
+    const d = new Date(dateValue);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
   async function loadOrders() {
     try {
       const res = await API.get("/api/orders/admin");
@@ -107,23 +120,12 @@ export default function AdminOrders() {
           <div className="admin-pickup">
             <h4>Самовывоз:</h4>
 
-            <p>{order.pickupLocation?.title}</p>
-            <p>{order.pickupLocation?.address}</p>
+            <p>{order.pickupLocation?.name ?? "—"}</p>
+            <p>{order.pickupLocation?.address ?? "—"}</p>
 
-            {order.pickupTime ? (
-              <p className="pickup-time">
-                Встреча{" "}
-                {new Date(order.pickupTime).toLocaleString("ru-RU", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })}
-              </p>
-            ) : (
-              <p>Время встречи не указано</p>
-            )}
+            <p className="pickup-time">
+              Встреча {formatPickupDisplay(order.pickupTime)}
+            </p>
           </div>
 
           {/* Итог */}

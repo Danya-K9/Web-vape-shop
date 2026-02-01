@@ -28,7 +28,7 @@ async function getProfile(req, res) {
   }
 }
 
-// PUT /api/profile/me
+// PUT /api/users/me
 async function updateMe(req, res) {
   try {
     const userId = req.user.id;
@@ -37,19 +37,33 @@ async function updateMe(req, res) {
     const data = {};
 
     if (telegram !== undefined) {
-      data.telegram = telegram;
+      data.telegram = String(telegram).trim();
     }
 
     if (phone !== undefined) {
-      data.phone = phone;
+      data.phone = String(phone).trim();
     }
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data
+      data,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        telegram: true,
+        telegramChatId: true,
+        phone: true,
+        role: true,
+        createdAt: true
+      }
     });
 
-    res.json(user);
+    const out = { ...user };
+    if (typeof out.telegramChatId === 'bigint') {
+      out.telegramChatId = out.telegramChatId.toString();
+    }
+    res.json(out);
   } catch (e) {
     console.error(e);
     res.status(400).json({ message: "Ошибка сохранения данных" });

@@ -1,92 +1,98 @@
-/* ===== КОНТЕЙНЕР ===== */
+/* ===== PREMIUM ADMIN USERS ===== */
+
 .admin-users {
-  background: #121212;
-  color: #ffffff;
-  padding: 24px;
-  border-radius: 12px;
+  padding: var(--space-xl);
+  color: var(--text-primary);
+  max-width: 100%;
+  overflow-x: auto;
 }
 
-/* ===== ЗАГОЛОВОК ===== */
 .admin-users h2 {
-  margin-bottom: 20px;
-  font-size: 22px;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  margin-bottom: var(--space-xl);
+  letter-spacing: -0.02em;
 }
 
-/* ===== ТАБЛИЦА ===== */
-.admin-table {
+.admin-users .admin-table {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm);
 }
 
-/* ===== СТРОКИ ===== */
-.admin-row {
+.admin-users .admin-row {
   display: grid;
-
-  grid-template-columns:
-    60px        /* ID */
-    minmax(220px, 2.5fr) /* Email */
-    160px       /* Телефон */
-    150px       /* Дата рождения */
-    130px       /* Роль */
-    140px       /* Регистрация */
-    80px;       /* Действия */
-
+  grid-template-columns: 50px minmax(140px, 2fr) 100px 100px 100px 90px 70px;
   align-items: center;
-  background: #1e1e1e;
-  padding: 14px 18px;
-  border-radius: 10px;
-  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  gap: var(--space-md);
 }
 
-
-/* ===== ЗАГОЛОВОК ТАБЛИЦЫ ===== */
-.admin-row.header {
-  grid-template-columns: inherit;
-  background: #2a2a2a;
-  font-weight: bold;
-  color: #bbbbbb;
+.admin-users .admin-row.header {
+  background: var(--bg-dark);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
 
-/* ===== ТЕКСТ ===== */
-.admin-row span {
-  color: #ffffff;
-  font-size: 14px;
+.admin-users .admin-row span {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ===== SELECT (РОЛЬ) ===== */
-.admin-row select {
-  background: #121212;
-  color: #ffffff;
-  border: 1px solid #444;
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
+.admin-users .admin-row select {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
 }
 
-.admin-row select:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.admin-users .admin-row button {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
-/* ===== КНОПКИ ===== */
-.admin-row button {
-  border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 14px;
-}
+@media (max-width: 900px) {
+  .admin-users {
+    padding: var(--space-md);
+  }
 
-/* ===== УДАЛЕНИЕ ===== */
-.admin-row .delete {
-  background: #ff4d4f;
-  color: #fff;
-}
+  .admin-users .admin-table {
+    min-width: 0;
+  }
 
-.admin-row .delete:hover {
-  background: #ff7875;
+  .admin-users .admin-row,
+  .admin-users .admin-row.header {
+    grid-template-columns: 36px minmax(0, 1fr) 80px minmax(70px, auto);
+    min-width: 0;
+  }
+
+  .admin-users .admin-row span:nth-child(4),
+  .admin-users .admin-row span:nth-child(5),
+  .admin-users .admin-row span:nth-child(6),
+  .admin-users .admin-row.header span:nth-child(4),
+  .admin-users .admin-row.header span:nth-child(5),
+  .admin-users .admin-row.header span:nth-child(6) {
+    display: none;
+  }
+
+  .admin-users .admin-row span:nth-child(7),
+  .admin-users .admin-row.header span:nth-child(7) {
+    justify-self: end;
+  }
+
+  .admin-users .admin-row button.delete {
+    min-width: 40px;
+    min-height: 40px;
+  }
 }

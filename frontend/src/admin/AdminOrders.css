@@ -1,71 +1,88 @@
+/* ===== PREMIUM ADMIN ORDERS ===== */
+
 .admin-orders {
   max-width: 1000px;
-  margin: 40px auto;
+  margin: 0 auto;
 }
 
 .admin-order-card {
-  background: #151630;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 25px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .admin-order-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .admin-user,
 .admin-items,
 .admin-pickup {
-  margin-bottom: 15px;
+  margin-bottom: var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
 
 .admin-item {
   display: flex;
-  gap: 15px;
-  margin-bottom: 10px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  align-items: center;
 }
 
 .admin-item img {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
+  background: var(--bg-dark);
 }
 
 .admin-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .admin-actions button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--text-sm);
 }
 
 .confirm {
-  background: #2ecc71;
-  color: white;
+  background: var(--gradient-accent);
+  color: var(--bg-deep);
 }
 
 .cancel {
-  background: #e74c3c;
-  color: white;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-.status.PENDING { color: orange; }
-.status.CONFIRMED { color: green; }
-.status.CANCELLED { color: red; }
+.status.PENDING { color: #fbbf24; }
+.status.CONFIRMED { color: #22c55e; }
+.status.CANCELLED { color: #f87171; }
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -73,86 +90,41 @@
 }
 
 .modal {
-  background: #151630;
-  padding: 20px;
-  border-radius: 10px;
-  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
 .confirm-actions {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-  
+  gap: var(--space-md);
+  justify-content: center;
+  margin-top: var(--space-lg);
 }
 
 .confirm-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-weight: 600;
   cursor: pointer;
-  
 }
 
 .confirm-btn.danger {
-  background: #e53935;
+  background: #ef4444;
   color: white;
 }
 
-/* Мобильные заказы */
 @media (max-width: 768px) {
-  .admin-orders {
-    margin: 20px 0;
-    padding: 0 8px;
-  }
-
   .admin-order-card {
-    padding: 16px;
-  }
-
-  .admin-order-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .admin-item {
-    flex-direction: column;
-    gap: 8px;
+    padding: var(--space-lg);
   }
 
   .admin-item img {
-    width: 50px;
-    height: 50px;
-  }
-
-  .admin-footer {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-
-  .admin-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
-
-  .modal {
-    width: 90%;
-    max-width: 320px;
-    margin: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .admin-order-card {
-    padding: 12px;
-  }
-
-  .admin-item img {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
   }
 }
