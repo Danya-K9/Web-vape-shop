@@ -32,11 +32,12 @@ let ADMIN_TOKEN = null;
 
 /**
  * Авторизация бота (для кнопок подтверждения заказов).
- * Сначала пробуем email+пароль (BOT_ADMIN_EMAIL), затем telegramChatId+пароль.
+ * Сначала пробуем вход по Telegram (TELEGRAM_CHAT_ID + пароль), затем по email.
+ * Для входа по Telegram: в БД у админа должен быть telegramChatId = TELEGRAM_CHAT_ID (можно выставить в pgAdmin).
  */
 async function loginBot() {
   if (!isAdminConfigured) {
-    console.log('⚠️ Bot admin login skipped - set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD (or TELEGRAM_CHAT_ID + BOT_ADMIN_PASSWORD) for order buttons');
+    console.log('⚠️ Bot admin login skipped - set TELEGRAM_CHAT_ID and BOT_ADMIN_PASSWORD (или BOT_ADMIN_EMAIL и BOT_ADMIN_PASSWORD) in Railway');
     return;
   }
 
@@ -47,14 +48,16 @@ async function loginBot() {
 
   try {
     console.log('🤖 Bot admin login...');
-    if (hasEmailLogin) {
-      console.log('   Using BOT_ADMIN_EMAIL + password');
-      await tryLogin({ email: BOT_EMAIL, password: BOT_PASSWORD });
-    } else if (hasChatIdLogin) {
+    if (hasChatIdLogin) {
       console.log('   Using TELEGRAM_CHAT_ID + password');
       await tryLogin({ telegramChatId: adminChatId, password: BOT_PASSWORD });
-    } else {
-      console.log('   Skipped: set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD (or TELEGRAM_CHAT_ID and BOT_ADMIN_PASSWORD) in Railway Variables');
+    }
+    if (!ADMIN_TOKEN && hasEmailLogin) {
+      console.log('   Using BOT_ADMIN_EMAIL + password');
+      await tryLogin({ email: BOT_EMAIL, password: BOT_PASSWORD });
+    }
+    if (!ADMIN_TOKEN) {
+      console.log('   Skipped: set TELEGRAM_CHAT_ID and BOT_ADMIN_PASSWORD (и в БД у админа telegramChatId = этот id) или BOT_ADMIN_EMAIL и BOT_ADMIN_PASSWORD');
     }
     if (ADMIN_TOKEN) console.log('✅ Bot authorized');
   } catch (e) {
@@ -154,7 +157,7 @@ const text = `
 
 📧 Email: ${order.user.email}
 📞 Телефон: ${order.user.phone}
-📬 Telegram: ${order.user.telegram}
+📬 Telegram: ${order.user.telegram ? (order.user.telegram.startsWith('@') ? order.user.telegram : '@' + order.user.telegram) : '-'}
 
 📦 Сумма: ${order.totalPrice} BYN
 💰 Сдача с: ${order.changeFrom && order.changeFrom > 0 ? order.changeFrom + " BYN" : "не требуется"}

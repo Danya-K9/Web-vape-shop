@@ -52,7 +52,7 @@ exports.register = async (req, res) => {
     codes.delete(tgKey);
 
     const existingByTg = await prisma.user.findUnique({
-      where: { telegramChatId: Number(telegramChatId) },
+      where: { telegramChatId: BigInt(telegramChatId) },
     });
     if (existingByTg) {
       return res.status(409).json({ message: 'Пользователь с этим Telegram уже зарегистрирован' });
@@ -68,14 +68,14 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const adminChatId = process.env.ADMIN_TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-    const role = adminChatId && Number(telegramChatId) === Number(adminChatId) ? 'ADMIN' : 'USER';
+    const role = adminChatId && String(telegramChatId) === String(adminChatId) ? 'ADMIN' : 'USER';
 
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash: hashedPassword,
         name,
-        telegramChatId: Number(telegramChatId),
+        telegramChatId: BigInt(telegramChatId),
         role,
       },
     });
@@ -112,6 +112,9 @@ exports.me = async (req, res) => {
       },
     });
 
+    if (user && typeof user.telegramChatId === 'bigint') {
+      user.telegramChatId = user.telegramChatId.toString();
+    }
     res.json(user);
   } catch (e) {
     res.status(500).json({ message: 'Ошибка профиля' });
@@ -138,7 +141,7 @@ exports.login = async (req, res) => {
     let user;
     if (hasTg) {
       user = await prisma.user.findUnique({
-        where: { telegramChatId: Number(telegramChatId) },
+        where: { telegramChatId: BigInt(telegramChatId) },
       });
     } else {
       user = await prisma.user.findUnique({
@@ -194,7 +197,7 @@ exports.changePassword = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { telegramChatId: Number(telegramChatId) },
+      where: { telegramChatId: BigInt(telegramChatId) },
     });
 
     if (!user) {

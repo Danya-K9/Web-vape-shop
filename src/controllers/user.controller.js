@@ -18,6 +18,9 @@ async function getProfile(req, res) {
       }
     });
 
+    if (user && typeof user.telegramChatId === 'bigint') {
+      user.telegramChatId = user.telegramChatId.toString();
+    }
     res.json(user);
   } catch (e) {
     console.error(e);

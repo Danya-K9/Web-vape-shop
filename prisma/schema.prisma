@@ -18,7 +18,7 @@ model User {
   passwordHash    String
   name            String
   telegram        String?
-  telegramChatId  Int?      @unique  // Telegram user id для отправки кодов и уведомлений
+  telegramChatId  BigInt?   @unique  // Telegram user id (может быть > 2^31, поэтому BigInt)
   phone           String?
   role            Role      @default(USER)
   orders          Order[]
@@ -64,8 +64,8 @@ model Order {
   totalPrice       Float
   status           String         @default("PENDING")
 
-  telegramChatId    Int?           // chat.id
-  telegramMessageId Int?           // message_id
+  telegramChatId    BigInt?       // chat.id (Telegram ID может быть > 2^31)
+  telegramMessageId BigInt?       // message_id
   changeFrom        Float?         // сдача
 
   items            OrderItem[]

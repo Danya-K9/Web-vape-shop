@@ -1,6 +1,19 @@
 const prisma = require('../../prisma.js');
 const { bot, ADMIN_CHAT_ID } = require('../telegram/bot');
 
+/** BigInt не сериализуется в JSON — приводим к строке при ответе API */
+function serializeForJson(obj) {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return obj.toString();
+  if (Array.isArray(obj)) return obj.map(serializeForJson);
+  if (typeof obj === 'object') {
+    const out = {};
+    for (const k of Object.keys(obj)) out[k] = serializeForJson(obj[k]);
+    return out;
+  }
+  return obj;
+}
+
 // 🧾 Мои заказы
 exports.getMyOrders = async (req, res) => {
   try {
@@ -21,7 +34,7 @@ exports.getMyOrders = async (req, res) => {
       }
     });
 
-    res.json(orders);
+    res.json(serializeForJson(orders));
   } catch (e) {
     console.error(e);
     res.status(500).json({
@@ -60,7 +73,7 @@ exports.getAllOrders = async (req, res) => {
       }
     });
 
-    res.json(orders);
+    res.json(serializeForJson(orders));
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Ошибка загрузки заказов" });
@@ -122,8 +135,8 @@ exports.updateOrderStatus = async (req, res) => {
     });
 
     // -------------------
-    // ✅ Оповещение пользователю в Telegram
-    const userChatId = order.user?.telegramChatId;
+    // ✅ Оповещение пользователю в Telegram (BigInt → number для API бота)
+    const userChatId = order.user?.telegramChatId != null ? Number(order.user.telegramChatId) : null;
     if (bot && userChatId) {
       try {
         if (status === "CONFIRMED") {
@@ -282,7 +295,7 @@ const text = `
 
 📧 Email: ${fullOrder.user.email}
 📞 Телефон: ${fullOrder.user.phone}
-📬 Telegram: ${fullOrder.user.telegram}
+📬 Telegram: ${fullOrder.user.telegram ? (fullOrder.user.telegram.startsWith('@') ? fullOrder.user.telegram : '@' + fullOrder.user.telegram) : '-'}
 
 📦 Сумма: ${fullOrder.totalPrice} BYN
 💰 Сдача с: ${fullOrder.changeFrom && fullOrder.changeFrom > 0 ? fullOrder.changeFrom + " BYN" : "не требуется"}
@@ -309,12 +322,12 @@ ${itemsText}
         }
       });
 
-      // Сохраняем в заказе chat_id и message_id для дальнейшего редактирования кнопок
+      // Сохраняем в заказе chat_id и message_id для дальнейшего редактирования кнопок (BigInt — Telegram ID может быть > 2^31)
       await prisma.order.update({
         where: { id: fullOrder.id },
         data: {
-          telegramChatId: message.chat.id,
-          telegramMessageId: message.message_id
+          telegramChatId: BigInt(message.chat.id),
+          telegramMessageId: BigInt(message.message_id)
         }
       });
     } catch (e) {
@@ -325,8 +338,8 @@ ${itemsText}
   }
 }
 
-    // 4b. Оповещение пользователю в Telegram
-    const userChatId = fullOrder.user?.telegramChatId;
+    // 4b. Оповещение пользователю в Telegram (BigInt → number для API бота)
+    const userChatId = fullOrder.user?.telegramChatId != null ? Number(fullOrder.user.telegramChatId) : null;
     if (bot && userChatId) {
       try {
         const itemsShort = fullOrder.items.map(i => `• ${i.product.title} × ${i.quantity}`).join('\n');
@@ -345,7 +358,7 @@ ${itemsText}
     }
 
     // 5️⃣ Ответ клиенту
-    res.json(fullOrder);
+    res.json(serializeForJson(fullOrder));
 
   } catch (e) {
     console.error("ORDER CREATE ERROR:", e);
@@ -412,7 +425,7 @@ exports.cancelOrder = async (req, res) => {
 ⚠️ Заказ #${order.id} был отменён пользователем
 📧 Email: ${order.user?.email || '-'}
 📞 Телефон: ${order.user?.phone || '-'}
-📬 Telegram: ${order.user?.telegram || '-'}
+📬 Telegram: ${order.user?.telegram ? (order.user.telegram.startsWith('@') ? order.user.telegram : '@' + order.user.telegram) : '-'}
 
 📦 Сумма: ${order.totalPrice} BYN
 📍 Самовывоз: ${order.pickupLocation?.title || '-'}
