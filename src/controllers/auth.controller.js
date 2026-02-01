@@ -129,23 +129,25 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Введите пароль' });
     }
 
-    if (!telegramChatId && !email) {
+    const hasTg = telegramChatId !== undefined && telegramChatId !== null && String(telegramChatId).trim() !== '';
+    const hasEm = email !== undefined && email !== null && (typeof email !== 'string' ? true : email.trim() !== '');
+    if (!hasTg && !hasEm) {
       return res.status(400).json({ message: 'Перейдите по ссылке из бота (нажмите /start в Telegram)' });
     }
 
     let user;
-    if (telegramChatId) {
+    if (hasTg) {
       user = await prisma.user.findUnique({
         where: { telegramChatId: Number(telegramChatId) },
       });
-    } else if (email) {
+    } else {
       user = await prisma.user.findUnique({
         where: { email: String(email).trim() },
       });
     }
 
     if (!user) {
-      if (telegramChatId) {
+      if (hasTg) {
         return res.status(400).json({ message: 'Пользователь не найден. Сначала откройте бота и перейдите по ссылке' });
       }
       return res.status(400).json({ message: 'Перейдите по ссылке из бота (нажмите /start в Telegram) или укажите корректные данные' });

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "prisma migrate deploy && node index.js",
     "postinstall": "prisma generate",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "hash-password": "node scripts/hash-password.js"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"

@@ -7,15 +7,20 @@ const ADMIN_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 const API_URL = process.env.API_URL || 'http://localhost:5000';
 
-const BOT_EMAIL = process.env.BOT_ADMIN_EMAIL;
-const BOT_PASSWORD = process.env.BOT_ADMIN_PASSWORD;
+const BOT_EMAIL = (process.env.BOT_ADMIN_EMAIL || '').trim();
+const BOT_PASSWORD = (process.env.BOT_ADMIN_PASSWORD || '').trim();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vape-shopby.netlify.app';
 
 // Бот создаётся при наличии токена (для /start и отправки кодов)
 const isBotConfigured = !!BOT_TOKEN;
 // Логин админа для кнопок подтверждения заказов: email+пароль (админ из БД) или telegramChatId+пароль
-const adminChatId = process.env.TELEGRAM_CHAT_ID || process.env.ADMIN_TELEGRAM_CHAT_ID;
-const isAdminConfigured = !!(BOT_EMAIL && BOT_PASSWORD) || !!(adminChatId && BOT_PASSWORD);
+const adminChatIdRaw = process.env.TELEGRAM_CHAT_ID || process.env.ADMIN_TELEGRAM_CHAT_ID;
+const adminChatId = adminChatIdRaw !== undefined && adminChatIdRaw !== '' && adminChatIdRaw !== null
+  ? String(adminChatIdRaw).trim()
+  : null;
+const hasEmailLogin = BOT_EMAIL.length > 0 && BOT_PASSWORD.length > 0;
+const hasChatIdLogin = adminChatId && adminChatId !== '0' && BOT_PASSWORD.length > 0;
+const isAdminConfigured = hasEmailLogin || hasChatIdLogin;
 
 if (!isBotConfigured) {
   console.warn('⚠️ Telegram bot not configured - set TELEGRAM_BOT_TOKEN');
@@ -42,10 +47,14 @@ async function loginBot() {
 
   try {
     console.log('🤖 Bot admin login...');
-    if (BOT_EMAIL && BOT_PASSWORD) {
+    if (hasEmailLogin) {
+      console.log('   Using BOT_ADMIN_EMAIL + password');
       await tryLogin({ email: BOT_EMAIL, password: BOT_PASSWORD });
-    } else if (adminChatId && BOT_PASSWORD) {
+    } else if (hasChatIdLogin) {
+      console.log('   Using TELEGRAM_CHAT_ID + password');
       await tryLogin({ telegramChatId: adminChatId, password: BOT_PASSWORD });
+    } else {
+      console.log('   Skipped: set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD (or TELEGRAM_CHAT_ID and BOT_ADMIN_PASSWORD) in Railway Variables');
     }
     if (ADMIN_TOKEN) console.log('✅ Bot authorized');
   } catch (e) {
