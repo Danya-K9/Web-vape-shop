@@ -1,0 +1,184 @@
+.auth-container {
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  background: #2a2a3d;
+  padding: 35px;
+  border-radius: 18px;
+  box-shadow: 0 0 30px rgba(78,205,196,0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-card--center {
+  text-align: center;
+  width: auto;
+  max-width: 340px;
+  min-width: 280px;
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 16px;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+
+  .auth-card--center {
+    min-width: 260px;
+  }
+}
+
+.auth-card h2 {
+  margin-bottom: 20px;
+  text-align: center;
+  color: #4ecdc4;
+}
+
+.auth-card input {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: #1e1e2f;
+  color: #f7fff7;
+}
+
+.auth-card input::placeholder {
+  color: #888;
+}
+
+.auth-card button {
+  background: #4ecdc4;
+  color: #1e1e2f;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.auth-card button:hover {
+  background: #45b8b0;
+}
+
+.auth-footer {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #c0c0c0;
+}
+
+.auth-footer a {
+  color: #4ecdc4;
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #ff6b6b;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #6ef0e8;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: inherit;
+}
+
+.link-button:hover {
+  color: #9efaf4;
+}
+
+.hint-box {
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(78, 205, 196, 0.3);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.hint-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.hint-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #f7fff7;
+}
+
+.hint-box p {
+  margin: 0;
+  color: #c0c0c0;
+}
+
+.auth-bot-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #4ecdc4;
+  color: #1e1e2f;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.auth-bot-link:hover {
+  opacity: 0.9;
+}
+.profile-row {
+  display: flex;
+  justify-content: flex-start; /* ❗ ВАЖНО */
+  width: 100%;
+}
+
+.profile-label {
+  color: #aaa;
+  min-width: 110px; /* чтобы всё ровно было */
+}
+
+.profile-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+.phone-value {
+  white-space: nowrap;
+  margin-left: -50px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+

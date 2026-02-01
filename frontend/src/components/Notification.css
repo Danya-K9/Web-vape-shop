@@ -1,0 +1,19 @@
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  color: #fff;
+  max-width: 320px;
+  font-size: 14px;
+  z-index: 9999;
+}
+
+.notification.success {
+  background: #2ecc71;
+}
+
+.notification.warning {
+  background: #f39c12;
+}

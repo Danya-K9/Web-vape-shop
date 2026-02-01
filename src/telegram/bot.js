@@ -48,16 +48,16 @@ async function loginBot() {
 
   try {
     console.log('🤖 Bot admin login...');
-    if (hasChatIdLogin) {
-      console.log('   Using TELEGRAM_CHAT_ID + password');
-      await tryLogin({ telegramChatId: adminChatId, password: BOT_PASSWORD });
-    }
-    if (!ADMIN_TOKEN && hasEmailLogin) {
+    if (hasEmailLogin) {
       console.log('   Using BOT_ADMIN_EMAIL + password');
       await tryLogin({ email: BOT_EMAIL, password: BOT_PASSWORD });
     }
+    if (!ADMIN_TOKEN && hasChatIdLogin) {
+      console.log('   Using TELEGRAM_CHAT_ID + password');
+      await tryLogin({ telegramChatId: adminChatId, password: BOT_PASSWORD });
+    }
     if (!ADMIN_TOKEN) {
-      console.log('   Skipped: set TELEGRAM_CHAT_ID and BOT_ADMIN_PASSWORD (и в БД у админа telegramChatId = этот id) или BOT_ADMIN_EMAIL и BOT_ADMIN_PASSWORD');
+      console.log('   Skipped: set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD (или TELEGRAM_CHAT_ID и BOT_ADMIN_PASSWORD) in Railway');
     }
     if (ADMIN_TOKEN) console.log('✅ Bot authorized');
   } catch (e) {
