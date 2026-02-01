@@ -119,26 +119,36 @@ exports.me = async (req, res) => {
 };
 
 /**
- * Вход: только по telegramChatId + пароль
+ * Вход: по telegramChatId + пароль (для пользователей) или по email + пароль (только для бота/админа, не в UI)
  */
 exports.login = async (req, res) => {
   try {
-    const { telegramChatId, password } = req.body;
+    const { telegramChatId, email, password } = req.body;
 
     if (!password) {
       return res.status(400).json({ message: 'Введите пароль' });
     }
 
-    if (!telegramChatId) {
+    if (!telegramChatId && !email) {
       return res.status(400).json({ message: 'Перейдите по ссылке из бота (нажмите /start в Telegram)' });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { telegramChatId: Number(telegramChatId) },
-    });
+    let user;
+    if (telegramChatId) {
+      user = await prisma.user.findUnique({
+        where: { telegramChatId: Number(telegramChatId) },
+      });
+    } else if (email) {
+      user = await prisma.user.findUnique({
+        where: { email: String(email).trim() },
+      });
+    }
 
     if (!user) {
-      return res.status(400).json({ message: 'Пользователь не найден. Сначала откройте бота и перейдите по ссылке' });
+      if (telegramChatId) {
+        return res.status(400).json({ message: 'Пользователь не найден. Сначала откройте бота и перейдите по ссылке' });
+      }
+      return res.status(400).json({ message: 'Перейдите по ссылке из бота (нажмите /start в Telegram) или укажите корректные данные' });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);

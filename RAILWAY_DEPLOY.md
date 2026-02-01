@@ -48,7 +48,15 @@ EMAIL_FROM=VapeShop <noreply@ваш-домен.com>   # только после 
 1. Railway автоматически задеплоит при пуше в GitHub
 2. Или нажмите "Deploy" вручную в интерфейсе Railway
 
-### 6. Проверьте работу
+### 6. Картинки товаров (фронт на Netlify и т.п.)
+Чтобы картинки загружались на сайте, при **сборке фронта** задай переменную окружения:
+- **VITE_API_BASE_URL** = URL твоего API на Railway (например `https://web-vape-shop-production.up.railway.app`)
+
+В Netlify: Site settings → Environment variables → Add variable → Name: `VITE_API_BASE_URL`, Value: твой Railway URL → Save, затем пересобери проект (Deploys → Trigger deploy).
+
+**Важно:** На Railway файлы в папке `uploads/` не сохраняются между деплоями (эпиhemeral). После каждого деплоя загруженные картинки пропадут. Для постоянного хранения нужен Volume (Railway → твой сервис → Volumes) или внешнее хранилище (S3, Cloudinary).
+
+### 7. Проверьте работу
 Откройте в браузере: `https://ваш-домен.railway.app/`
 
 Должно появиться: `API is running and DB connected ✅`

@@ -1,9 +1,18 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
+
+// Папка для загрузок (должна существовать для multer и раздачи картинок)
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('📁 Created uploads directory');
+}
 const prisma = new PrismaClient();
 
 /* =========================================================
@@ -71,8 +80,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin/pickup-locations', pickupAdminRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Статика (картинки товаров)
-app.use('/uploads', express.static('uploads'));
+// Статика (картинки товаров) — раздаём из абсолютного пути
+app.use('/uploads', express.static(uploadsDir));
 
 /* =========================================================
    HEALTH CHECK

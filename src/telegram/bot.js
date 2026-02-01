@@ -13,9 +13,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://vape-shopby.netlify.ap
 
 // Бот создаётся при наличии токена (для /start и отправки кодов)
 const isBotConfigured = !!BOT_TOKEN;
-// Логин админа нужен только для кнопок подтверждения заказов (TELEGRAM_CHAT_ID админа + пароль)
+// Логин админа для кнопок подтверждения заказов: email+пароль (админ из БД) или telegramChatId+пароль
 const adminChatId = process.env.TELEGRAM_CHAT_ID || process.env.ADMIN_TELEGRAM_CHAT_ID;
-const isAdminConfigured = !!(adminChatId && BOT_PASSWORD);
+const isAdminConfigured = !!(BOT_EMAIL && BOT_PASSWORD) || !!(adminChatId && BOT_PASSWORD);
 
 if (!isBotConfigured) {
   console.warn('⚠️ Telegram bot not configured - set TELEGRAM_BOT_TOKEN');
@@ -26,24 +26,28 @@ const bot = isBotConfigured ? new TelegramBot(BOT_TOKEN, { polling: true }) : nu
 let ADMIN_TOKEN = null;
 
 /**
- * Авторизация бота (для кнопок подтверждения заказов — нужны BOT_ADMIN_EMAIL и BOT_ADMIN_PASSWORD)
+ * Авторизация бота (для кнопок подтверждения заказов).
+ * Сначала пробуем email+пароль (BOT_ADMIN_EMAIL), затем telegramChatId+пароль.
  */
 async function loginBot() {
   if (!isAdminConfigured) {
-    console.log('⚠️ Bot admin login skipped - set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD for order buttons');
+    console.log('⚠️ Bot admin login skipped - set BOT_ADMIN_EMAIL and BOT_ADMIN_PASSWORD (or TELEGRAM_CHAT_ID + BOT_ADMIN_PASSWORD) for order buttons');
     return;
   }
 
+  const tryLogin = async (payload) => {
+    const res = await axios.post(`${API_URL}/api/auth/login`, payload);
+    ADMIN_TOKEN = res.data.token;
+  };
+
   try {
     console.log('🤖 Bot admin login...');
-
-    const res = await axios.post(`${API_URL}/api/auth/login`, {
-      telegramChatId: adminChatId,
-      password: BOT_PASSWORD
-    });
-
-    ADMIN_TOKEN = res.data.token;
-    console.log('✅ Bot authorized');
+    if (BOT_EMAIL && BOT_PASSWORD) {
+      await tryLogin({ email: BOT_EMAIL, password: BOT_PASSWORD });
+    } else if (adminChatId && BOT_PASSWORD) {
+      await tryLogin({ telegramChatId: adminChatId, password: BOT_PASSWORD });
+    }
+    if (ADMIN_TOKEN) console.log('✅ Bot authorized');
   } catch (e) {
     console.error('LOGIN ERROR FULL:');
     console.error('Status:', e.response?.status);
