@@ -16,16 +16,17 @@ export default function AdminProducts() {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [customCategory, setCustomCategory] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
- const [form, setForm] = useState({
-  title: "",
-  description: "",
-  price: "",
-  costPrice: "",
-  category: "",
-  quantity: "",
-  image: null,
-});
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    price: "",
+    costPrice: "",
+    category: "",
+    quantity: "",
+    image: null,
+  });
 
 
   /* ---------- ЗАГРУЗКА ---------- */
@@ -50,8 +51,13 @@ export default function AdminProducts() {
   /* ---------- УДАЛЕНИЕ ---------- */
   const deleteProduct = async (id) => {
     if (!window.confirm("Удалить товар?")) return;
-    await API.delete(`/api/admin/products/${id}`);
-    fetchProducts();
+    try {
+      await API.delete(`/api/admin/products/${id}`);
+      await fetchProducts();
+      setSelectedProduct(null);
+    } catch (e) {
+      alert(e.response?.data?.message || "Ошибка удаления товара");
+    }
   };
 
   /* ---------- СОЗДАНИЕ / ОБНОВЛЕНИЕ ---------- */
@@ -115,6 +121,12 @@ export default function AdminProducts() {
     setCustomCategory("");
     setEditingProduct(null);
     setShowForm(false);
+  };
+
+  const handleRowClick = (event, product) => {
+    // Не открываем панель, если клик по кнопке
+    if (event.target.closest("button")) return;
+    setSelectedProduct(product);
   };
 
   return (
@@ -241,7 +253,11 @@ export default function AdminProducts() {
         </div>
 
         {products.map((p) => (
-<div key={p.id} className="admin-row">
+<div
+  key={p.id}
+  className="admin-row"
+  onClick={(e) => handleRowClick(e, p)}
+>
   <span className="image-cell">
     {p.imageUrl ? (
       <img
@@ -268,13 +284,84 @@ export default function AdminProducts() {
 
   {/* ДЕЙСТВИЯ */}
   <span className="actions">
-    <button className="edit" onClick={() => startEdit(p)}>✏️</button>
-    <button className="delete" onClick={() => deleteProduct(p.id)}>🗑</button>
+    <button
+      className="edit"
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        startEdit(p);
+      }}
+    >
+      ✏️
+    </button>
+    <button
+      className="delete"
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        deleteProduct(p.id);
+      }}
+    >
+      🗑
+    </button>
   </span>
 </div>
 
         ))}
       </div>
+
+      {/* Панель с деталями товара (мобильная/общая) */}
+      {selectedProduct && (
+        <div className="admin-detail-overlay" onClick={() => setSelectedProduct(null)}>
+          <div
+            className="admin-detail-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Товар #{selectedProduct.id}</h3>
+
+            {selectedProduct.imageUrl && (
+              <img
+                src={getImageUrl(selectedProduct.imageUrl)}
+                alt={selectedProduct.title}
+                className="admin-detail-image"
+              />
+            )}
+
+            <p><strong>Название:</strong> {selectedProduct.title}</p>
+            <p><strong>Описание:</strong> {selectedProduct.description}</p>
+            <p><strong>Категория:</strong> {selectedProduct.category}</p>
+            <p><strong>Цена:</strong> {selectedProduct.price} BYN</p>
+            <p><strong>Количество:</strong> {selectedProduct.quantity}</p>
+
+            <div className="admin-detail-actions">
+              <button
+                type="button"
+                className="edit"
+                onClick={() => {
+                  startEdit(selectedProduct);
+                  setSelectedProduct(null);
+                }}
+              >
+                Редактировать
+              </button>
+              <button
+                type="button"
+                className="delete"
+                onClick={() => deleteProduct(selectedProduct.id)}
+              >
+                Удалить
+              </button>
+              <button
+                type="button"
+                className="close-detail"
+                onClick={() => setSelectedProduct(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

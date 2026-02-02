@@ -97,11 +97,23 @@ export default function Checkout() {
       return;
     }
 
+    const pickupAt = `${pickupDate}T${pickupTime}:00`;
+    const pickupAtDate = new Date(pickupAt);
+    const now = new Date();
+
+    if (Number.isNaN(pickupAtDate.getTime())) {
+      setMessage("Неверная дата и время самовывоза");
+      return;
+    }
+
+    if (pickupAtDate.getTime() < now.getTime()) {
+      setMessage("Нельзя выбрать прошедшую дату и время самовывоза");
+      return;
+    }
+
     try {
       setOrdering(true);
       setMessage("");
-
-      const pickupAt = `${pickupDate}T${pickupTime}:00`;
 
       await API.post("/api/orders", {
         pickupLocationId: Number(pickupLocationId),

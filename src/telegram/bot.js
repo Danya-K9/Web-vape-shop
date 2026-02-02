@@ -30,6 +30,19 @@ const bot = isBotConfigured ? new TelegramBot(BOT_TOKEN, { polling: true }) : nu
 
 let ADMIN_TOKEN = null;
 
+function formatDateTimeRu(value) {
+  if (!value) return '-';
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 /**
  * Авторизация бота (для кнопок подтверждения заказов).
  * Сначала пробуем вход по Telegram (TELEGRAM_CHAT_ID + пароль), затем по email.
@@ -166,7 +179,7 @@ const text = `
 🛍 Товары:
 ${itemsText}
 
-⏰ Время: ${new Date(order.pickupTime).toLocaleString('ru-RU')}
+⏰ Время: ${formatDateTimeRu(order.pickupTime)}
 `;
 
 

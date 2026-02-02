@@ -6,6 +6,7 @@ export default function AdminPickupLocations() {
   const [locations, setLocations] = useState([]);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const load = async () => {
     const res = await API.get("/api/admin/pickup-locations");
@@ -56,19 +57,86 @@ export default function AdminPickupLocations() {
 
       <div className="admin-table">
         {locations.map(l => (
-          <div key={l.id} className="admin-row">
+          <div
+            key={l.id}
+            className="admin-row"
+            onClick={() => setSelectedLocation(l)}
+          >
             <span>{l.name}</span>
             <span>{l.address}</span>
             <span>{l.active ? "🟢" : "🔴"}</span>
             <span>
-              <button onClick={() => toggle(l)}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(l);
+                }}
+              >
                 {l.active ? "Отключить" : "Включить"}
               </button>
-              <button onClick={() => remove(l.id)}>🗑</button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  remove(l.id);
+                }}
+              >
+                🗑
+              </button>
             </span>
           </div>
         ))}
       </div>
+
+      {selectedLocation && (
+        <div
+          className="admin-detail-overlay"
+          onClick={() => setSelectedLocation(null)}
+        >
+          <div
+            className="admin-detail-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Точка самовывоза #{selectedLocation.id}</h3>
+            <p><strong>Название:</strong> {selectedLocation.name}</p>
+            <p><strong>Адрес:</strong> {selectedLocation.address}</p>
+            <p>
+              <strong>Статус:</strong>{" "}
+              {selectedLocation.active ? "Активна" : "Выключена"}
+            </p>
+
+            <div className="admin-detail-actions">
+              <button
+                type="button"
+                onClick={async () => {
+                  await toggle(selectedLocation);
+                  setSelectedLocation(null);
+                }}
+              >
+                {selectedLocation.active ? "Отключить" : "Включить"}
+              </button>
+              <button
+                type="button"
+                className="delete"
+                onClick={async () => {
+                  await remove(selectedLocation.id);
+                  setSelectedLocation(null);
+                }}
+              >
+                Удалить
+              </button>
+              <button
+                type="button"
+                className="close-detail"
+                onClick={() => setSelectedLocation(null)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

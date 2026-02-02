@@ -1,10 +1,25 @@
 const prisma = require('../../prisma.js');
 const { bot, ADMIN_CHAT_ID } = require('../telegram/bot');
 
-/** BigInt не сериализуется в JSON — приводим к строке при ответе API */
+/** Форматирование даты/времени для RU (бот, письма, админка) */
+function formatDateTimeRu(value) {
+  if (!value) return '-';
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return '-';
+  return d.toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+/** BigInt / Date не сериализуются в JSON как есть — приводим к строке/ISO */
 function serializeForJson(obj) {
   if (obj === null || obj === undefined) return obj;
   if (typeof obj === 'bigint') return obj.toString();
+  if (obj instanceof Date) return obj.toISOString();
   if (Array.isArray(obj)) return obj.map(serializeForJson);
   if (typeof obj === 'object') {
     const out = {};
@@ -145,7 +160,7 @@ exports.updateOrderStatus = async (req, res) => {
             `✅ Заказ #${order.id} подтверждён!\n\n` +
             `Сумма: ${order.totalPrice} BYN\n` +
             `Самовывоз: ${order.pickupLocation?.name || '-'}\n` +
-            `Дата и время: ${order.pickupTime ? new Date(order.pickupTime).toLocaleString('ru-RU') : '-'}`
+            `Дата и время: ${formatDateTimeRu(order.pickupTime)}`
           );
         } else if (status === "CANCELLED") {
           await bot.sendMessage(
@@ -179,6 +194,14 @@ exports.createOrder = async (req, res) => {
     if (isNaN(date.getTime())) {
       return res.status(400).json({
         message: "Неверная дата и время самовывоза"
+      });
+    }
+
+    // Нельзя выбирать прошедшую дату/время
+    const now = new Date();
+    if (date.getTime() < now.getTime()) {
+      return res.status(400).json({
+        message: "Нельзя выбрать прошедшую дату и время самовывоза"
       });
     }
 
@@ -304,7 +327,7 @@ const text = `
 🛍 Товары:
 ${itemsText}
 
-⏰ Время: ${new Date(fullOrder.pickupTime).toLocaleString('ru-RU')}
+⏰ Время: ${formatDateTimeRu(fullOrder.pickupTime)}
 `;
 
 
@@ -348,7 +371,7 @@ ${itemsText}
           `🛒 Ваш заказ #${fullOrder.id} принят!\n\n` +
           `Сумма: ${fullOrder.totalPrice} BYN\n` +
           `Самовывоз: ${fullOrder.pickupLocation?.name || '-'}\n` +
-          `Время: ${new Date(fullOrder.pickupTime).toLocaleString('ru-RU')}\n\n` +
+          `Время: ${formatDateTimeRu(fullOrder.pickupTime)}\n\n` +
           `Товары:\n${itemsShort}\n\n` +
           `Ожидайте подтверждения в боте.`
         );
@@ -433,7 +456,7 @@ exports.cancelOrder = async (req, res) => {
 🛍 Товары:
 ${itemsText}
 
-⏰ Время: ${order.pickupTime ? new Date(order.pickupTime).toLocaleString('ru-RU') : '-'}
+⏰ Время: ${formatDateTimeRu(order.pickupTime)}
 `;
 
       if (bot && ADMIN_CHAT_ID) {
