@@ -251,6 +251,8 @@ exports.createOrder = async (req, res) => {
 
         orderItems.push({
           productId: product.id,
+          productTitle: product.title,
+          productImageUrl: product.imageUrl,
           quantity: item.quantity,
           price: product.price
         });
@@ -307,8 +309,10 @@ exports.createOrder = async (req, res) => {
 if (ADMIN_CHAT_ID) {
 
   const itemsText = fullOrder.items.map(i => {
-    return `• ${i.product.title}
-${i.product.description || 'Без описания'}
+    const title = i.product?.title ?? i.productTitle ?? 'Товар';
+    const desc = i.product?.description ?? 'Без описания';
+    return `• ${title}
+${desc}
 Кол-во: ${i.quantity} шт.
 Цена: ${i.price} BYN`;
   }).join('\n\n');
@@ -365,7 +369,7 @@ ${itemsText}
     const userChatId = fullOrder.user?.telegramChatId != null ? Number(fullOrder.user.telegramChatId) : null;
     if (bot && userChatId) {
       try {
-        const itemsShort = fullOrder.items.map(i => `• ${i.product.title} × ${i.quantity}`).join('\n');
+        const itemsShort = fullOrder.items.map(i => `• ${i.product?.title ?? i.productTitle ?? 'Товар'} × ${i.quantity}`).join('\n');
         await bot.sendMessage(
           userChatId,
           `🛒 Ваш заказ #${fullOrder.id} принят!\n\n` +
@@ -437,8 +441,8 @@ exports.cancelOrder = async (req, res) => {
 
     if (ADMIN_CHAT_ID) {
       const itemsText = order.items.map(i => {
-        const title = i.product?.title || 'Неизвестный товар';
-        const desc = i.product?.description || '-';
+        const title = i.product?.title ?? i.productTitle ?? 'Неизвестный товар';
+        const desc = i.product?.description ?? '-';
         const quantity = i.quantity;
         const price = i.price;
         return `• ${title} (${quantity} × ${price} BYN)\n${desc}`;
@@ -451,7 +455,7 @@ exports.cancelOrder = async (req, res) => {
 📬 Telegram: ${order.user?.telegram ? (order.user.telegram.startsWith('@') ? order.user.telegram : '@' + order.user.telegram) : '-'}
 
 📦 Сумма: ${order.totalPrice} BYN
-📍 Самовывоз: ${order.pickupLocation?.title || '-'}
+📍 Самовывоз: ${order.pickupLocation?.name ?? '-'}
 
 🛍 Товары:
 ${itemsText}

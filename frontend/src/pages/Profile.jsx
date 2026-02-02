@@ -313,12 +313,12 @@ export default function Profile() {
                   {order.items.map((item) => (
                     <div key={item.id} className="order-product">
                       <img
-                        src={getImageUrl(item.product.imageUrl)}
-                        alt={item.product.title}
+                        src={getImageUrl(item.product?.imageUrl ?? item.productImageUrl)}
+                        alt={item.product?.title ?? item.productTitle ?? 'Товар'}
                       />
                       <div className="order-product-info">
-                        <div className="product-title">{item.product.title}</div>
-                        {item.product.description && (
+                        <div className="product-title">{item.product?.title ?? item.productTitle ?? 'Товар'}</div>
+                        {item.product?.description && (
                           <div className="product-description">
                             {item.product.description}
                           </div>

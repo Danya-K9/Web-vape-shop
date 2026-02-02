@@ -159,14 +159,6 @@ exports.deleteProduct = async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error(e);
-
-    // Нельзя удалить товар, если он участвует в заказах (FK на OrderItem)
-    if (e.code === 'P2003') {
-      return res.status(400).json({
-        message: 'Нельзя удалить товар, так как он уже есть в оформленных заказах',
-      });
-    }
-
     res.status(500).json({ message: 'Ошибка удаления товара' });
   }
 };

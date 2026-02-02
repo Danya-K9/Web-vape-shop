@@ -158,8 +158,10 @@ if (bot) {
 
     // Формируем текст с товарами
     const itemsText = order.items.map(i => {
-      return `• ${i.product.title}
-${i.product.description || 'Без описания'}
+      const title = i.product?.title ?? i.productTitle ?? 'Товар';
+      const desc = i.product?.description ?? 'Без описания';
+      return `• ${title}
+${desc}
 Кол-во: ${i.quantity} шт.
 Цена: ${i.price} BYN`;
     }).join('\n\n');

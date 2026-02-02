@@ -95,14 +95,14 @@ export default function AdminOrders() {
             {order.items.map(i => (
               <div key={i.id} className="admin-item">
                 <img
-                  src={getImageUrl(i.product.imageUrl)}
+                  src={getImageUrl(i.product?.imageUrl ?? i.productImageUrl)}
                   alt=""
                 />
 
                 <div className="admin-item-info">
-                  <b>{i.product.title}</b>
+                  <b>{i.product?.title ?? i.productTitle ?? 'Товар'}</b>
 
-                  {i.product.description && (
+                  {i.product?.description && (
                     <p className="admin-item-description">
                       {i.product.description}
                     </p>

@@ -21,8 +21,18 @@ export default function Cart() {
       }
 
       const res = await API.get("/api/products");
-      setProducts(res.data);
-      setItems(cart);
+      const productsList = res.data;
+      setProducts(productsList);
+
+      // Удаляем из корзины товары, которых больше нет (удалены)
+      const validItems = cart.filter(item =>
+        productsList.some(p => p.id === item.productId)
+      );
+      if (validItems.length !== cart.length) {
+        localStorage.setItem("cart", JSON.stringify(validItems));
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
+      setItems(validItems);
       setLoading(false);
     }
 

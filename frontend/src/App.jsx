@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
@@ -15,12 +15,10 @@ import AdminUsers from "./admin/AdminUsers";
 import Checkout from "./pages/Checkout";
 import AdminOrders from "./admin/AdminOrders";
 
-export default function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <Router>
-      <Header />
-      <Notification />
-
+    <div key={location.pathname} className="page-transition">
       <Routes>
   <Route path="/" element={<Home />} />
   <Route path="/login" element={<Login />} />
@@ -44,7 +42,16 @@ export default function App() {
     <Route path="pickup" element={<AdminPickupLocations />} />
   </Route>
 </Routes>
+    </div>
+  );
+}
 
+export default function App() {
+  return (
+    <Router>
+      <Header />
+      <Notification />
+      <AnimatedRoutes />
     </Router>
   );
 }

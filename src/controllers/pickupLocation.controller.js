@@ -37,9 +37,17 @@ exports.toggle = async (req, res) => {
 
 // удалить
 exports.delete = async (req, res) => {
-  await prisma.pickupLocation.delete({
-    where: { id: Number(req.params.id) }
-  });
-
-  res.json({ success: true });
+  try {
+    await prisma.pickupLocation.delete({
+      where: { id: Number(req.params.id) }
+    });
+    res.json({ success: true });
+  } catch (e) {
+    if (e.code === 'P2003') {
+      return res.status(400).json({
+        message: 'Нельзя удалить точку самовывоза, так как она используется в заказах'
+      });
+    }
+    throw e;
+  }
 };
