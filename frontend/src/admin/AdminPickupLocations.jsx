@@ -33,8 +33,13 @@ export default function AdminPickupLocations() {
 
   const remove = async (id) => {
     if (!window.confirm("Удалить точку?")) return;
-    await API.delete(`/api/admin/pickup-locations/${id}`);
-    load();
+    try {
+      await API.delete(`/api/admin/pickup-locations/${id}`);
+      load();
+    } catch (e) {
+      const msg = e.response?.data?.message || "Ошибка удаления";
+      window.dispatchEvent(new CustomEvent("notify", { detail: { message: msg, type: "error" } }));
+    }
   };
 
   return (

@@ -7,13 +7,16 @@
 /* Плавная анимация перехода страниц */
 .page-transition {
   flex: 1;
-  animation: pageFadeIn 0.35s ease-out;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  animation: pageFadeIn 0.45s ease-out;
 }
 
 @keyframes pageFadeIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;

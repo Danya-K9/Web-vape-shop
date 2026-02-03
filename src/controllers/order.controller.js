@@ -512,10 +512,12 @@ exports.getAnalytics = async (req, res) => {
     const categoryStats = {};
 
     for (const order of orders) {
+      const user = order.user;
+      if (!user) continue;
       if (!customerStats[order.userId]) {
         customerStats[order.userId] = {
           userId: order.userId,
-          email: order.user.email,
+          email: user.email ?? "—",
           ordersCount: 0,
           totalSpent: 0
         };
@@ -526,33 +528,37 @@ exports.getAnalytics = async (req, res) => {
 
       for (const item of order.items) {
         const p = item.product;
+        const productKey = p ? p.id : `item-${item.id}`;
+        const title = p?.title ?? item.productTitle ?? "Товар удалён";
+        const category = p?.category ?? "—";
+        const costPerUnit = p?.costPrice ?? 0;
 
-        if (!productStats[p.id]) {
-          productStats[p.id] = {
-            productId: p.id,
-            title: p.title,
+        if (!productStats[productKey]) {
+          productStats[productKey] = {
+            productId: p?.id ?? null,
+            title,
             soldQuantity: 0,
             revenue: 0,
             cost: 0
           };
         }
 
-        productStats[p.id].soldQuantity += item.quantity;
-        productStats[p.id].revenue += item.quantity * item.price;
-        productStats[p.id].cost += item.quantity * p.costPrice;
+        productStats[productKey].soldQuantity += item.quantity;
+        productStats[productKey].revenue += item.quantity * item.price;
+        productStats[productKey].cost += item.quantity * costPerUnit;
 
-        if (!categoryStats[p.category]) {
-          categoryStats[p.category] = {
-            category: p.category,
+        if (!categoryStats[category]) {
+          categoryStats[category] = {
+            category,
             soldQuantity: 0,
             revenue: 0,
             cost: 0
           };
         }
 
-        categoryStats[p.category].soldQuantity += item.quantity;
-        categoryStats[p.category].revenue += item.quantity * item.price;
-        categoryStats[p.category].cost += item.quantity * p.costPrice;
+        categoryStats[category].soldQuantity += item.quantity;
+        categoryStats[category].revenue += item.quantity * item.price;
+        categoryStats[category].cost += item.quantity * costPerUnit;
       }
     }
 
