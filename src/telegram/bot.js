@@ -158,8 +158,8 @@ if (bot) {
 
     // Формируем текст с товарами
     const itemsText = order.items.map(i => {
-      const title = i.product?.title ?? i.productTitle ?? 'Товар';
-      const desc = i.product?.description ?? 'Без описания';
+      const title = i.productTitle || i.product?.title || 'Товар';
+      const desc = i.productDescription ?? i.product?.description ?? 'Без описания';
       return `• ${title}
 ${desc}
 Кол-во: ${i.quantity} шт.
@@ -176,7 +176,7 @@ const text = `
 
 📦 Сумма: ${order.totalPrice} BYN
 💰 Сдача с: ${order.changeFrom && order.changeFrom > 0 ? order.changeFrom + " BYN" : "не требуется"}
-📍 Самовывоз: ${order.pickupLocation?.name || '-'}
+📍 Самовывоз: ${order.pickupLocation?.name ?? order.pickupLocationName ?? '-'}
 
 🛍 Товары:
 ${itemsText}

@@ -278,15 +278,18 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* История заказов */}
+      {/* История заказов — последние 5 */}
       <div className="orders-card">
         <h3>История заказов</h3>
+        {orders.length > 5 && (
+          <p className="orders-hint">Показаны последние 5 заказов</p>
+        )}
 
         {orders.length === 0 ? (
           <p className="empty">У вас пока нет заказов</p>
         ) : (
           <div className="orders-list">
-            {orders.map((order) => (
+            {orders.slice(0, 5).map((order) => (
               <div key={order.id} className="order-item">
                 <div className="order-header">
                   <div>
@@ -313,14 +316,14 @@ export default function Profile() {
                   {order.items.map((item) => (
                     <div key={item.id} className="order-product">
                       <img
-                        src={getImageUrl(item.product?.imageUrl ?? item.productImageUrl)}
-                        alt={item.product?.title ?? item.productTitle ?? 'Товар'}
+                        src={getImageUrl(item.productImageUrl ?? item.product?.imageUrl)}
+                        alt={item.productTitle || item.product?.title || 'Товар'}
                       />
                       <div className="order-product-info">
-                        <div className="product-title">{item.product?.title ?? item.productTitle ?? 'Товар'}</div>
-                        {item.product?.description && (
+                        <div className="product-title">{item.productTitle || item.product?.title || 'Товар'}</div>
+                        {(item.productDescription ?? item.product?.description) && (
                           <div className="product-description">
-                            {item.product.description}
+                            {item.productDescription ?? item.product?.description}
                           </div>
                         )}
                         <div className="product-meta">

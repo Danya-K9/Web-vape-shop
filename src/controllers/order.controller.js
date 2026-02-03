@@ -159,7 +159,7 @@ exports.updateOrderStatus = async (req, res) => {
             userChatId,
             `✅ Заказ #${order.id} подтверждён!\n\n` +
             `Сумма: ${order.totalPrice} BYN\n` +
-            `Самовывоз: ${order.pickupLocation?.name || '-'}\n` +
+            `Самовывоз: ${order.pickupLocation?.name ?? order.pickupLocationName ?? '-'}\n` +
             `Дата и время: ${formatDateTimeRu(order.pickupTime)}`
           );
         } else if (status === "CANCELLED") {
@@ -253,6 +253,7 @@ exports.createOrder = async (req, res) => {
           productId: product.id,
           productTitle: product.title,
           productImageUrl: product.imageUrl,
+          productDescription: product.description ?? null,
           quantity: item.quantity,
           price: product.price
         });
@@ -269,18 +270,20 @@ exports.createOrder = async (req, res) => {
       }
 
       return tx.order.create({
-  data: {
-    userId,
-    pickupLocationId,
-    pickupTime: date,
-    totalPrice,
-    status: "PENDING",
-    changeFrom: req.body.changeFrom || 0,
-    items: {
-      create: orderItems
-    }
-  }
-});
+        data: {
+          userId,
+          pickupLocationId,
+          pickupLocationName: pickup.name,
+          pickupLocationAddress: pickup.address,
+          pickupTime: date,
+          totalPrice,
+          status: "PENDING",
+          changeFrom: req.body.changeFrom || 0,
+          items: {
+            create: orderItems
+          }
+        }
+      });
 
     });
 
@@ -309,8 +312,8 @@ exports.createOrder = async (req, res) => {
 if (ADMIN_CHAT_ID) {
 
   const itemsText = fullOrder.items.map(i => {
-    const title = i.product?.title ?? i.productTitle ?? 'Товар';
-    const desc = i.product?.description ?? 'Без описания';
+    const title = i.productTitle || i.product?.title || 'Товар';
+    const desc = i.productDescription ?? i.product?.description ?? 'Без описания';
     return `• ${title}
 ${desc}
 Кол-во: ${i.quantity} шт.
@@ -326,7 +329,7 @@ const text = `
 
 📦 Сумма: ${fullOrder.totalPrice} BYN
 💰 Сдача с: ${fullOrder.changeFrom && fullOrder.changeFrom > 0 ? fullOrder.changeFrom + " BYN" : "не требуется"}
-📍 Самовывоз: ${fullOrder.pickupLocation?.name || '-'}
+📍 Самовывоз: ${fullOrder.pickupLocation?.name ?? fullOrder.pickupLocationName ?? '-'}
 
 🛍 Товары:
 ${itemsText}
@@ -369,12 +372,12 @@ ${itemsText}
     const userChatId = fullOrder.user?.telegramChatId != null ? Number(fullOrder.user.telegramChatId) : null;
     if (bot && userChatId) {
       try {
-        const itemsShort = fullOrder.items.map(i => `• ${i.product?.title ?? i.productTitle ?? 'Товар'} × ${i.quantity}`).join('\n');
+        const itemsShort = fullOrder.items.map(i => `• ${i.productTitle || i.product?.title || 'Товар'} × ${i.quantity}`).join('\n');
         await bot.sendMessage(
           userChatId,
           `🛒 Ваш заказ #${fullOrder.id} принят!\n\n` +
           `Сумма: ${fullOrder.totalPrice} BYN\n` +
-          `Самовывоз: ${fullOrder.pickupLocation?.name || '-'}\n` +
+          `Самовывоз: ${fullOrder.pickupLocation?.name ?? fullOrder.pickupLocationName ?? '-'}\n` +
           `Время: ${formatDateTimeRu(fullOrder.pickupTime)}\n\n` +
           `Товары:\n${itemsShort}\n\n` +
           `Ожидайте подтверждения в боте.`
@@ -441,8 +444,8 @@ exports.cancelOrder = async (req, res) => {
 
     if (ADMIN_CHAT_ID) {
       const itemsText = order.items.map(i => {
-        const title = i.product?.title ?? i.productTitle ?? 'Неизвестный товар';
-        const desc = i.product?.description ?? '-';
+        const title = i.productTitle || i.product?.title || 'Неизвестный товар';
+        const desc = i.productDescription ?? i.product?.description ?? '-';
         const quantity = i.quantity;
         const price = i.price;
         return `• ${title} (${quantity} × ${price} BYN)\n${desc}`;
@@ -455,7 +458,7 @@ exports.cancelOrder = async (req, res) => {
 📬 Telegram: ${order.user?.telegram ? (order.user.telegram.startsWith('@') ? order.user.telegram : '@' + order.user.telegram) : '-'}
 
 📦 Сумма: ${order.totalPrice} BYN
-📍 Самовывоз: ${order.pickupLocation?.name ?? '-'}
+📍 Самовывоз: ${order.pickupLocation?.name ?? order.pickupLocationName ?? '-'}
 
 🛍 Товары:
 ${itemsText}

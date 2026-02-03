@@ -57,8 +57,10 @@ model Order {
   userId           Int
   user             User           @relation(fields: [userId], references: [id])
 
-  pickupLocationId Int
-  pickupLocation   PickupLocation @relation(fields: [pickupLocationId], references: [id])
+  pickupLocationId Int?
+  pickupLocation   PickupLocation? @relation(fields: [pickupLocationId], references: [id], onDelete: SetNull)
+  pickupLocationName   String     @default("")  // снимок на момент заказа
+  pickupLocationAddress String?   // снимок адреса
 
   pickupTime       DateTime?      // опционально
   totalPrice       Float
@@ -82,10 +84,11 @@ model OrderItem {
   product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   productId      Int?
 
-  productTitle  String  @default("")  // снимок на момент заказа (для истории при удалении товара)
-  productImageUrl String?             // снимок изображения
+  productTitle     String  @default("")  // снимок на момент заказа (история не меняется при редактировании товара)
+  productImageUrl  String?              // снимок изображения
+  productDescription String?            // снимок описания
 
-  quantity       Int
-  price          Float
+  quantity         Int
+  price            Float
 }
 

@@ -95,16 +95,16 @@ export default function AdminOrders() {
             {order.items.map(i => (
               <div key={i.id} className="admin-item">
                 <img
-                  src={getImageUrl(i.product?.imageUrl ?? i.productImageUrl)}
+                  src={getImageUrl(i.productImageUrl ?? i.product?.imageUrl)}
                   alt=""
                 />
 
                 <div className="admin-item-info">
-                  <b>{i.product?.title ?? i.productTitle ?? 'Товар'}</b>
+                  <b>{i.productTitle || i.product?.title || 'Товар'}</b>
 
-                  {i.product?.description && (
+                  {(i.productDescription ?? i.product?.description) && (
                     <p className="admin-item-description">
-                      {i.product.description}
+                      {i.productDescription ?? i.product?.description}
                     </p>
                   )}
 
@@ -116,12 +116,12 @@ export default function AdminOrders() {
             ))}
           </div>
 
-          {/* Самовывоз */}
+          {/* Самовывоз (снимок на момент заказа — не меняется при удалении точки) */}
           <div className="admin-pickup">
             <h4>Самовывоз:</h4>
 
-            <p>{order.pickupLocation?.name ?? "—"}</p>
-            <p>{order.pickupLocation?.address ?? "—"}</p>
+            <p>{order.pickupLocationName || order.pickupLocation?.name ?? "—"}</p>
+            <p>{order.pickupLocationAddress ?? order.pickupLocation?.address ?? "—"}</p>
 
             <p className="pickup-time">
               Встреча {formatPickupDisplay(order.pickupTime)}
